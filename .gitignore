@@ -1,0 +1,62 @@
+# --- Python General ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Environment Variables (CRITIQUE POUR SECURITE) ---
+.env
+.env.local
+.env.*.local
+
+# --- IDE Settings ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# --- Data Science & ML (CRITIQUE POUR POIDS) ---
+# On ignore les données brutes et processées (trop lourd pour Git)
+data/raw/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep       # Astuce : On garde les dossiers vides
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# Modèles entraînés (souvent > 100Mo)
+models/*.pkl
+models/*.joblib
+models/*.bin
+models/*.h5
+models/*.onnx
+
+# Notebook checkpoints
+.ipynb_checkpoints
+
+# --- MLOps & Monitoring ---
+# MLFlow local storage
+mlruns/
+.trash/
+
+# Pytest cache
+.pytest_cache/
