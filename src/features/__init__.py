@@ -1,1 +1,1 @@
-"""Module de feature engineering."""
+"""Feature engineering module."""

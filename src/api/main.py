@@ -1,15 +1,15 @@
-"""FastAPI application principale."""
+"""FastAPI main application."""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="EV-Pulse API",
-    description="API de prédiction de recharge de véhicules électriques",
+    description="Electric vehicle charging prediction API",
     version="0.1.0"
 )
 
-# Configuration CORS
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,9 +21,9 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    """Endpoint racine."""
+    """Root endpoint."""
     return {
-        "message": "Bienvenue sur l'API EV-Pulse",
+        "message": "Welcome to EV-Pulse API",
         "version": "0.1.0"
     }
 
@@ -34,4 +34,4 @@ async def health():
     return {"status": "healthy"}
 
 
-# TODO: Ajouter les endpoints de prédiction
+# TODO: Add prediction endpoints

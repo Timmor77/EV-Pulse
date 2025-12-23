@@ -1,1 +1,1 @@
-"""Module d'entraînement et d'inférence des modèles."""
+"""Model training and inference module."""

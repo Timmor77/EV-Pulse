@@ -1,1 +1,1 @@
-"""Module de traitement et d'ingestion des données."""
+"""Data extraction and processing module."""

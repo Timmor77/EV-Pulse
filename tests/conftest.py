@@ -1,11 +1,11 @@
-"""Configuration de tests pytest."""
+"""Pytest configuration and fixtures."""
 
 import pytest
 
 
 @pytest.fixture
 def sample_data():
-    """Fixture pour données de test."""
+    """Sample data fixture for testing."""
     return {
         "timestamp": "2024-01-01 12:00:00",
         "station_id": "station_001",

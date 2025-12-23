@@ -1,61 +1,93 @@
 # EV-Pulse
 
-Projet de prédiction et d'analyse des données de recharge de véhicules électriques.
+Electric vehicle charging prediction and analysis platform using ACN (Adaptive Charging Network) data.
 
-## Structure du Projet
+## Project Structure
 
 ```
 EV-Pulse/
-├── .github/workflows/   # CI/CD
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # CI/CD pipeline
 ├── data/
-│   ├── raw/             # Données brutes (JSON/CSV ACN & Météo)
-│   └── processed/       # Données traitées (Parquet)
+│   ├── raw/                 # Raw data (ACN JSON files)
+│   └── processed/           # Processed data (Parquet)
 ├── src/
-│   ├── data/            # Scripts d'ingestion et processing
-│   ├── features/        # Feature engineering (Lags, Dates)
-│   ├── models/          # Entraînement et inférence (LightGBM)
-│   └── api/             # FastAPI application
-├── notebooks/           # Exploration et EDA
-├── tests/               # Tests unitaires (Pytest)
-├── Dockerfile           # Containerisation
-├── requirements.txt     # Dépendances Python
+│   ├── api/                 # FastAPI application
+│   ├── data/                # Data extraction and processing
+│   ├── features/            # Feature engineering
+│   └── models/              # ML model training and inference
+├── notebooks/               # Jupyter notebooks for EDA
+├── tests/                   # Unit tests (pytest)
+├── Dockerfile               # Container configuration
+├── pyproject.toml           # Project dependencies and config
 └── README.md
 ```
 
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+# Using uv (recommended)
+uv sync
+
+# With optional dependencies
+uv sync --extra ml --extra dev
+
+# Using pip
+pip install -e .
 ```
 
-## Utilisation
+## Usage
 
-### Traitement des données
+### Data Extraction
 ```bash
-python src/data/process.py
+python -m src.data.extract_acn
 ```
 
-### Entraînement du modèle
+### Data Processing
 ```bash
-python src/models/train.py
+python -m src.data.process_data
 ```
 
-### Lancement de l'API
+### Start API
 ```bash
 uvicorn src.api.main:app --reload
 ```
 
-## Développement
+## Development
 
-### Tests
+### Run Tests
 ```bash
-pytest tests/
+pytest
+```
+
+### Linting
+```bash
+ruff check src tests
 ```
 
 ### Docker
 ```bash
 docker build -t ev-pulse .
 docker run -p 8000:8000 ev-pulse
+```
+
+## Data Source
+
+This project uses data from the ACN-Data platform: https://ev.caltech.edu/
+
+## Citation
+
+```bibtex
+@inproceedings{lee_acndata_2019,
+  author = {Lee, Zachary J. and Li, Tongxin and Low, Steven H.},
+  title = {{ACN}-{Data}: {Analysis} and {Applications} of an {Open} {EV} {Charging} {Dataset}},
+  booktitle = {Proceedings of the Tenth International Conference on Future Energy Systems},
+  series = {e-Energy '19},
+  month = jun,
+  year = {2019},
+  location = {Phoenix, Arizona}
+}
 ```
 
 ## License

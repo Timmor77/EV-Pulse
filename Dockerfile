@@ -1,21 +1,21 @@
-# Utiliser une image Python officielle
+# Use official Python image
 FROM python:3.11-slim
 
-# Définir le répertoire de travail
+# Set working directory
 WORKDIR /app
 
-# Copier les fichiers de dépendances
-COPY requirements.txt .
+# Copy dependency files
+COPY pyproject.toml .
 
-# Installer les dépendances
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir .
 
-# Copier le code source
+# Copy source code
 COPY src/ ./src/
 COPY data/ ./data/
 
-# Exposer le port pour l'API
+# Expose API port
 EXPOSE 8000
 
-# Commande par défaut
+# Default command
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
