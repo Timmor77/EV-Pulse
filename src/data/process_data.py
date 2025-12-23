@@ -1,95 +1,122 @@
-"""Data processing and transformation module.
-
-This module handles cleaning, transforming, and preparing
-the raw ACN charging session data for analysis and modeling.
-"""
-
 import json
+import logging
 from pathlib import Path
+from typing import List, Optional
 
 import pandas as pd
+import numpy as np
 
-# Project paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-RAW_DATA_DIR = PROJECT_ROOT / "data" / "raw"
-PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
+# Configuration du logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
+# Constants
+RAW_DIR = Path("data/raw")
+PROCESSED_DIR = Path("data/processed")
+FILES_TO_PROCESS = [
+    "acn_jpl_FULL_2018-2024.json",
+    "acn_caltech_FULL_2018-2024.json",
+    "acn_office001_FULL_2018-2024.json",
+]
 
-def load_raw_sessions(site: str = "caltech") -> pd.DataFrame:
-    """Load raw charging sessions from JSON file.
-
-    Args:
-        site: Site identifier ('caltech', 'jpl', 'office001').
-
-    Returns:
-        DataFrame with raw session data.
+def load_and_clean_json(filepath: Path) -> pd.DataFrame:
     """
-    filepath = RAW_DATA_DIR / f"acn_{site}_FULL_2018-2024.json"
-
-    with open(filepath, "r") as f:
+    Loads a JSON file, cleans column names, parses dates, and handles missing values.
+    """
+    logger.info(f"Loading raw data from: {filepath}")
+    
+    with open(filepath, 'r') as f:
         data = json.load(f)
-
-    return pd.DataFrame(data)
-
-
-def clean_sessions(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean and preprocess charging session data.
-
-    Args:
-        df: Raw session DataFrame.
-
-    Returns:
-        Cleaned DataFrame with proper types and derived columns.
-    """
-    df = df.copy()
-
-    # Convert timestamps
-    time_cols = ["connectionTime", "disconnectTime", "doneChargingTime"]
-    for col in time_cols:
+    
+    if isinstance(data, dict) and '_items' in data:
+        data = data['_items']
+        
+    df = pd.DataFrame(data)
+    
+    # --- FIX CRITIQUE ICI ---
+    # Force les IDs en string pour éviter l'erreur PyArrow "int vs bytes"
+    id_cols = ['siteID', 'clusterID', 'stationID', 'spaceID', 'userID']
+    for col in id_cols:
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col])
+            # On convertit en string et on remplace les 'nan' string par de vrais NaN si nécessaire,
+            # mais pour Parquet, tout en string est plus sûr.
+            df[col] = df[col].astype(str)
+    # ------------------------
 
-    # Calculate session duration (minutes)
-    if "connectionTime" in df.columns and "disconnectTime" in df.columns:
-        df["session_duration_min"] = (
-            df["disconnectTime"] - df["connectionTime"]
-        ).dt.total_seconds() / 60
+    # 1. Standardization: Drop MongoDB specific ID
+    if '_id' in df.columns:
+        df = df.drop(columns=['_id'])
 
-    # Calculate charging duration (minutes)
-    if "connectionTime" in df.columns and "doneChargingTime" in df.columns:
-        df["charging_duration_min"] = (
-            df["doneChargingTime"] - df["connectionTime"]
-        ).dt.total_seconds() / 60
+    # 2. Date Parsing
+    date_cols = ['connectionTime', 'disconnectTime', 'doneChargingTime']
+    for col in date_cols:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors='coerce', utc=True)
 
+    # 3. Logic Fix: 'doneChargingTime'
+    if 'doneChargingTime' in df.columns and 'disconnectTime' in df.columns:
+        df['doneChargingTime'] = df['doneChargingTime'].fillna(df['disconnectTime'])
+
+    # 4. Filter Invalid Rows
+    initial_count = len(df)
+    df = df.dropna(subset=['connectionTime'])
+    
+    if 'kWhDelivered' in df.columns:
+        df = df[df['kWhDelivered'] > 0]
+        
+    dropped_count = initial_count - len(df)
+    if dropped_count > 0:
+        logger.warning(f"Dropped {dropped_count} rows due to invalid dates or zero energy.")
+
+    # 5. Type Casting
+    if 'kWhDelivered' in df.columns:
+        df['kWhDelivered'] = df['kWhDelivered'].astype('float32')
+        
+    # Add source identifier
+    site_name = filepath.stem.replace("acn_", "").replace("_FULL_2018-2024", "")
+    df['source_site'] = site_name
+
+    logger.info(f"Successfully processed {len(df)} sessions from {site_name}.")
     return df
 
+def main():
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    
+    all_dfs: List[pd.DataFrame] = []
 
-def save_processed(df: pd.DataFrame, filename: str) -> Path:
-    """Save processed DataFrame to Parquet format.
+    for filename in FILES_TO_PROCESS:
+        file_path = RAW_DIR / filename
+        if not file_path.exists():
+            logger.error(f"File not found: {file_path}")
+            continue
+            
+        try:
+            df = load_and_clean_json(file_path)
+            all_dfs.append(df)
+        except Exception as e:
+            logger.error(f"Failed to process {filename}: {e}")
 
-    Args:
-        df: Processed DataFrame.
-        filename: Output filename (without extension).
+    if not all_dfs:
+        logger.error("No data processed. Exiting.")
+        return
 
-    Returns:
-        Path to saved file.
-    """
-    PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = PROCESSED_DATA_DIR / f"{filename}.parquet"
-    df.to_parquet(output_path, index=False)
-    return output_path
+    # Merge all sites into one master DataFrame
+    logger.info("Concatenating all sites...")
+    master_df = pd.concat(all_dfs, ignore_index=True)
 
+    # Sorting by time ensures efficient time-series operations later
+    master_df = master_df.sort_values(by='connectionTime').reset_index(drop=True)
+
+    # Save to Parquet
+    output_path = PROCESSED_DIR / "acn_data_cleaned.parquet"
+    logger.info(f"Saving merged dataset to {output_path}...")
+    
+    # Pyarrow engine is faster and supports more types
+    master_df.to_parquet(output_path, engine='pyarrow', index=False)
+    
+    logger.info("Data processing pipeline completed successfully.")
+    logger.info(f"Total shape: {master_df.shape}")
+    logger.info(f"Columns: {list(master_df.columns)}")
 
 if __name__ == "__main__":
-    # Process all sites
-    sites = ["caltech", "jpl", "office001"]
-
-    for site in sites:
-        print(f"Processing {site}...")
-        try:
-            df = load_raw_sessions(site)
-            df = clean_sessions(df)
-            output = save_processed(df, f"sessions_{site}")
-            print(f"  -> Saved to {output}")
-        except FileNotFoundError:
-            print(f"  -> No data found for {site}, skipping.")
+    main()

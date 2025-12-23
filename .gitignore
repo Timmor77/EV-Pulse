@@ -39,6 +39,7 @@ wheels/
 data/raw/*
 data/processed/*
 data/external/*
+notebooks/*
 !data/raw/.gitkeep       # Astuce : On garde les dossiers vides
 !data/processed/.gitkeep
 !data/external/.gitkeep
