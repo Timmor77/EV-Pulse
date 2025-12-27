@@ -50,7 +50,8 @@ notebooks/*
 # src/models/*.bin
 # src/models/*.h5
 # src/models/*.onnx
-
+src/models/lgbm_model_v1.pkl
+src/models/train_model_v1.py
 data_analysis/*
 # Notebook checkpoints
 .ipynb_checkpoints
