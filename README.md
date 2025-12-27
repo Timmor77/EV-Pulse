@@ -96,6 +96,7 @@ EV-Pulse/
 ├── docker-compose.yml   # Orchestrator
 ├── pyproject.toml       # Dependencies (uv)
 └── README.md            # You are here
+```
 
 ## 🛠️ Tools & Technologies
 * **Language**: Python 3.10
