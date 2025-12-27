@@ -2,7 +2,10 @@
 FROM python:3.10-slim
 
 # Installation de curl pour télécharger uv
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    curl \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Installation de uv (le gestionnaire de paquets ultra-rapide)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
@@ -10,17 +13,22 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 # Dossier de travail
 WORKDIR /app
 
-# 1. On copie d'abord les fichiers de dépendances (Optimisation Cache Docker)
 COPY pyproject.toml uv.lock ./
 
-# 2. Installation des dépendances système du projet (sans créer de venv interne)
-RUN uv sync --frozen --system
+# --- CORRECTION ICI ---
+# On retire '--system'. uv va créer un dossier .venv dans /app
+# On active la compilation du bytecode pour que le démarrage soit plus rapide
+ENV UV_COMPILE_BYTECODE=1
+
+# On lance la synchro (création du .venv)
+RUN uv sync --frozen --no-install-project
+
+# CRUCIAL : On ajoute le .venv au PATH du système
+# Ainsi, quand on tapera "python" ou "uvicorn", il utilisera celui du venv automatiquement
+ENV PATH="/app/.venv/bin:$PATH"
+# ----------------------
 
 # 3. Copie du code et des modèles
-# Note : On ignore 'data' car on le montera ou on le copiera sélectivement si besoin
-# Pour ce projet, on a besoin des données processées pour les normales de saison ? 
-# Non, les normales sont codées en dur dans l'API maintenant.
-# Mais on a besoin du modèle .pkl !
 COPY src/ ./src/
 
 # Variables d'environnement pour Python
