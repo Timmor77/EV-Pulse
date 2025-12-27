@@ -45,9 +45,7 @@ def train_and_evaluate():
         "lag_1week",
         "avg_energy_yesterday",
     ]
-    features = [
-        c for c in df.columns if c not in drop_cols and c not in features_to_remove
-    ]
+    features = [c for c in df.columns if c not in drop_cols and c not in features_to_remove]
 
     X = df[features]
     y = df[target]
@@ -103,9 +101,7 @@ def train_and_evaluate():
         rmse = np.sqrt(mean_squared_error(y_test, preds))
         r2 = r2_score(y_test, preds)
 
-        logger.info(
-            f"Fold {fold + 1}: MAE={mae:.2f} kW | RMSE={rmse:.2f} kW | R2={r2:.2%}"
-        )
+        logger.info(f"Fold {fold + 1}: MAE={mae:.2f} kW | RMSE={rmse:.2f} kW | R2={r2:.2%}")
         fold_metrics.append({"mae": mae, "rmse": rmse, "r2": r2})
 
     # 4. Bilan Global
@@ -113,9 +109,7 @@ def train_and_evaluate():
     avg_r2 = np.mean([m["r2"] for m in fold_metrics])
 
     logger.info("-" * 30)
-    logger.info(
-        f"✅ CV Terminée. Moyenne MAE: {avg_mae:.2f} kW | Moyenne R2: {avg_r2:.2%}"
-    )
+    logger.info(f"✅ CV Terminée. Moyenne MAE: {avg_mae:.2f} kW | Moyenne R2: {avg_r2:.2%}")
     logger.info("-" * 30)
 
     # 5. Entraînement Final (Production)
@@ -139,9 +133,9 @@ def train_and_evaluate():
 
     # 7. Feature Importance (Bonus Expert)
     # Pour vérifier que le modèle n'a pas appris n'importe quoi
-    importance = pd.DataFrame(
-        {"feature": features, "importance": final_model.feature_importances_}
-    ).sort_values("importance", ascending=False)
+    importance = pd.DataFrame({"feature": features, "importance": final_model.feature_importances_}).sort_values(
+        "importance", ascending=False
+    )
 
     print("\n--- 🏆 Top 5 Features les plus importantes ---")
     print(importance.head(5))

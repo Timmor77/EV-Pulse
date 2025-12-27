@@ -12,9 +12,7 @@ from sklearn.model_selection import TimeSeriesSplit
 # =========================
 # Config
 # =========================
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("lgbm_power")
 
 INPUT_FILE = Path("data/processed/model_context.parquet")
@@ -110,21 +108,15 @@ def train_and_evaluate():
             eval_set=[(X_test, y_test)],
             eval_metric="mae",
             categorical_feature=existing_cat,
-            callbacks=[
-                lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbose=False)
-            ],
+            callbacks=[lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbose=False)],
         )
 
         preds = model.predict(X_test)
         rep = regression_report(y_test, preds)
-        fold_rows.append(
-            {"fold": fold, **rep, "best_iter": getattr(model, "best_iteration_", None)}
-        )
+        fold_rows.append({"fold": fold, **rep, "best_iter": getattr(model, "best_iteration_", None)})
 
         if fold == tscv.get_n_splits():
-            last_fold_artifacts = dict(
-                model=model, X_test=X_test, y_test=y_test, preds=preds
-            )
+            last_fold_artifacts = dict(model=model, X_test=X_test, y_test=y_test, preds=preds)
 
     cv_df = pd.DataFrame(fold_rows)
     print_header("Cross-validation (TimeSeriesSplit)")

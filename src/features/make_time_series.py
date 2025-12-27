@@ -12,9 +12,7 @@ INPUT_FILE = Path("data/processed/acn_data_cleaned.parquet")
 OUTPUT_FILE = Path("data/processed/acn_timeseries_15min.parquet")
 
 
-def create_timeseries_from_sessions(
-    df: pd.DataFrame, interval_min: int = 15
-) -> pd.DataFrame:
+def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) -> pd.DataFrame:
     """
     Transforme une liste de sessions (Start, End, kWh) en une série temporelle continue.
 
@@ -32,9 +30,7 @@ def create_timeseries_from_sessions(
     freq = f"{interval_min}T"
     time_index = pd.date_range(start=start_date, end=end_date, freq=freq, tz="UTC")
 
-    logger.info(
-        f"Timeline created: {len(time_index)} points from {start_date} to {end_date}"
-    )
+    logger.info(f"Timeline created: {len(time_index)} points from {start_date} to {end_date}")
 
     # 2. Préparation des structures de données (Numpy pour la vitesse)
     # On crée un tableau de zéros de la taille de la timeline

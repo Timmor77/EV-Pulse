@@ -5,9 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 # Configuration du logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Constants
@@ -67,9 +65,7 @@ def load_and_clean_json(filepath: Path) -> pd.DataFrame:
 
     dropped_count = initial_count - len(df)
     if dropped_count > 0:
-        logger.warning(
-            f"Dropped {dropped_count} rows due to invalid dates or zero energy."
-        )
+        logger.warning(f"Dropped {dropped_count} rows due to invalid dates or zero energy.")
 
     # 5. Type Casting
     if "kWhDelivered" in df.columns:

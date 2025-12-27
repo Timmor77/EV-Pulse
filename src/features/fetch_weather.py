@@ -79,11 +79,7 @@ def process_and_upsample(df: pd.DataFrame) -> pd.DataFrame:
 
     # Resample to 15 min
     # Température et Radiation : Interpolation linéaire (douce)
-    df_interp = (
-        df[["temperature", "solar_radiation"]]
-        .resample("15T")
-        .interpolate(method="linear")
-    )
+    df_interp = df[["temperature", "solar_radiation"]].resample("15T").interpolate(method="linear")
 
     # Précipitation : Forward Fill (ou diviser par 4 si c'est du cumul,
     # mais OpenMeteo donne souvent l'intensité mm/h. Gardons ffill pour simplifier l'indicateur "il pleut")

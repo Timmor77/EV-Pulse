@@ -59,8 +59,8 @@ def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
     # Business Time
     df["is_business_time"] = (
         (df["is_active_hour"] == 1)
-        & (df["is_weekend"] == False)
-        & (df["is_holiday"] == False)
+        & (~df["is_weekend"])  # Le tilde ~ signifie "inverse" (NOT) pour les booléens
+        & (~df["is_holiday"])
     ).astype(int)
 
     # Interaction Heure x Mois

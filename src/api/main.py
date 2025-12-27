@@ -104,9 +104,7 @@ async def simulate(request: SimulationRequest):
         raise HTTPException(status_code=503, detail="Modèle non chargé")
 
     try:
-        df_features, dates = prepare_simulation_data(
-            request.date, request.override_temp, request.override_sun
-        )
+        df_features, dates = prepare_simulation_data(request.date, request.override_temp, request.override_sun)
 
         model_features = ml_models["lgbm"].feature_name_
         X = df_features[model_features]
