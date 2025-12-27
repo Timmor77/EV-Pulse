@@ -110,3 +110,15 @@ EV-Pulse/
 * **Visualization**: Streamlit, Plotly
 
 * **DevOps**: Docker, GitHub Actions (CI)
+
+## Citations
+
+@inproceedings{lee_acndata_2019,
+  author = {Lee, Zachary J. and Li, Tongxin, and Low, Steven H.},
+  title = { {ACN}-{Data}: {Analysis} and {Applications} of an {Open} {EV} {Charging} {Dataset} },
+  booktitle = {Proceedings of the Tenth International Conference on Future Energy Systems},
+  series = {e-Energy '19},
+  month = jun,
+  year = {2019},
+  location = {Phoenix, Arizona}
+}
