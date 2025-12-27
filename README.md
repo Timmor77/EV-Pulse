@@ -112,7 +112,7 @@ EV-Pulse/
 * **DevOps**: Docker, GitHub Actions (CI)
 
 ## Citations
-
+```text
 @inproceedings{lee_acndata_2019,
   author = {Lee, Zachary J. and Li, Tongxin, and Low, Steven H.},
   title = { {ACN}-{Data}: {Analysis} and {Applications} of an {Open} {EV} {Charging} {Dataset} },
@@ -122,3 +122,4 @@ EV-Pulse/
   year = {2019},
   location = {Phoenix, Arizona}
 }
+```
