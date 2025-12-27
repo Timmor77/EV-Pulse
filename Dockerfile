@@ -1,21 +1,31 @@
-# Use official Python image
-FROM python:3.11-slim
+# Image Python légère et récente
+FROM python:3.10-slim
 
-# Set working directory
+# Installation de curl pour télécharger uv
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Installation de uv (le gestionnaire de paquets ultra-rapide)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# Dossier de travail
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml .
+# 1. On copie d'abord les fichiers de dépendances (Optimisation Cache Docker)
+COPY pyproject.toml uv.lock ./
 
-# Install dependencies
-RUN pip install --no-cache-dir .
+# 2. Installation des dépendances système du projet (sans créer de venv interne)
+RUN uv sync --frozen --system
 
-# Copy source code
+# 3. Copie du code et des modèles
+# Note : On ignore 'data' car on le montera ou on le copiera sélectivement si besoin
+# Pour ce projet, on a besoin des données processées pour les normales de saison ? 
+# Non, les normales sont codées en dur dans l'API maintenant.
+# Mais on a besoin du modèle .pkl !
 COPY src/ ./src/
-COPY data/ ./data/
 
-# Expose API port
-EXPOSE 8000
+# Variables d'environnement pour Python
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
-# Default command
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Commande par défaut (sera surchargée par docker-compose)
+CMD ["python"]

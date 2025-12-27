@@ -45,7 +45,9 @@ def get_sessions_by_year(site: str, year: int, token: str) -> list[dict]:
     end_date = f"Mon, 01 Jan {year + 1} 00:00:00 GMT"
 
     # Build query filter
-    query = f'{site}?where=connectionTime>="{start_date}" and connectionTime<"{end_date}"'
+    query = (
+        f'{site}?where=connectionTime>="{start_date}" and connectionTime<"{end_date}"'
+    )
     url = BASE_URL + query
 
     sessions_year = []

@@ -1,0 +1,24 @@
+services:
+  # Service 1 : L'Intelligence (API)
+  api:
+    build: .
+    container_name: ev-pulse-api
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montage des modèles pour éviter de rebuilder l'image si on réentraîne
+      - ./src/models:/app/src/models
+
+  # Service 2 : L'Interface (Dashboard)
+  dashboard:
+    build: .
+    container_name: ev-pulse-dashboard
+    command: streamlit run src/dashboard/app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      # C'est ici qu'on dit au Dashboard : "L'API n'est pas sur localhost, elle est sur 'api'"
+      - API_URL=http://api:8000
+    depends_on:
+      - api

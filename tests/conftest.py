@@ -9,5 +9,5 @@ def sample_data():
     return {
         "timestamp": "2024-01-01 12:00:00",
         "station_id": "station_001",
-        "power_kw": 50.0
+        "power_kw": 50.0,
     }
