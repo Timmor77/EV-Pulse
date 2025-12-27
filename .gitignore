@@ -62,3 +62,4 @@ mlruns/
 
 # Pytest cache
 .pytest_cache/
+.cache.sqlite/
