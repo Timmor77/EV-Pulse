@@ -50,6 +50,8 @@ src/models/*.joblib
 src/models/*.bin
 src/models/*.h5
 src/models/*.onnx
+
+data_analysis/*
 # Notebook checkpoints
 .ipynb_checkpoints
 
