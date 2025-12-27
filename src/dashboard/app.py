@@ -13,31 +13,31 @@ st.set_page_config(page_title="EV-Pulse Dashboard", layout="wide", page_icon="�
 st.title("⚡ EV-Pulse : Smart Charging Simulator")
 
 # --- SIDEBAR ---
-st.sidebar.header("⚙️ Paramètres")
+st.sidebar.header("⚙️ Settings")
 
-# 1. Date (Valeur par défaut = Aujourd'hui)
+# 1. Date (Default = Today)
 today = datetime.now()
-selected_date = st.sidebar.date_input("Date cible", value=today)
+selected_date = st.sidebar.date_input("Target Date", value=today)
 
-# 2. Météo Intelligente
-st.sidebar.subheader("Conditions Météo")
-use_seasonal = st.sidebar.checkbox("Utiliser normales de saison", value=True)
+# 2. Smart Weather
+st.sidebar.subheader("Weather Conditions")
+use_seasonal = st.sidebar.checkbox("Use seasonal averages", value=True)
 
 if not use_seasonal:
-    override_temp = st.sidebar.slider("Température (°C)", -5, 45, 20)
-    override_sun = st.sidebar.slider("Ensoleillement (W/m²)", 0, 1000, 600)
+    override_temp = st.sidebar.slider("Temperature (°C)", -5, 45, 20)
+    override_sun = st.sidebar.slider("Solar Radiation (W/m²)", 0, 1000, 600)
 else:
     override_temp = None
     override_sun = None
-    st.sidebar.info("📅 La météo sera déduite automatiquement du mois sélectionné.")
+    st.sidebar.info("📅 Weather will be automatically inferred from the selected month.")
 
-st.sidebar.subheader("Dimensionnement")
-ev_growth = st.sidebar.slider("Croissance Parc VE (%)", 0, 200, 0)
-grid_limit = st.sidebar.number_input("Limite Transfo (kW)", value=150)
+st.sidebar.subheader("Sizing")
+ev_growth = st.sidebar.slider("EV Fleet Growth (%)", 0, 200, 0)
+grid_limit = st.sidebar.number_input("Transformer Limit (kW)", value=150)
 
 # --- SIMULATION ---
-if st.sidebar.button("Lancer la Simulation", type="primary"):
-    with st.spinner("Calcul en cours..."):
+if st.sidebar.button("Run Simulation", type="primary"):
+    with st.spinner("Calculating..."):
         try:
             payload = {
                 "date": selected_date.strftime("%Y-%m-%d"),
@@ -49,10 +49,10 @@ if st.sidebar.button("Lancer la Simulation", type="primary"):
             response.raise_for_status()
             data = response.json()
 
-            # ... (Le reste du code d'affichage reste identique au précédent) ...
-            # COPIE COLLE LA SUITE DU FICHIER PRÉCÉDENT ICI (Traitement df_res, KPI, Graphique)
+            # ... (Rest of display code remains the same) ...
+            # COPY PASTE THE REST OF THE PREVIOUS FILE HERE (df_res processing, KPI, Chart)
 
-            # Juste pour t'aider, voici le bloc de traitement à remettre :
+            # Processing block:
             df_res = pd.DataFrame(data["points"])
             df_res["datetime"] = pd.to_datetime(df_res["datetime"])
             growth_factor = 1 + (ev_growth / 100)
@@ -63,19 +63,19 @@ if st.sidebar.button("Lancer la Simulation", type="primary"):
 
             # KPI
             col1, col2, col3 = st.columns(3)
-            col1.metric("⚡ Énergie Totale", f"{total_energy:.0f} kWh")
+            col1.metric("⚡ Total Energy", f"{total_energy:.0f} kWh")
 
             d_col = "inverse" if peak_power > grid_limit else "normal"
             col2.metric(
-                "📈 Pic Puissance",
+                "📈 Peak Power",
                 f"{peak_power:.1f} kW",
                 delta=f"{peak_power - grid_limit:.1f}",
                 delta_color=d_col,
             )
 
-            # Affichage de la météo utilisée (celle renvoyée par le message API ou logique locale)
-            weather_msg = "Saisonnière" if use_seasonal else f"{override_temp}°C"
-            col3.metric("☀️ Météo", weather_msg)
+            # Display weather used (from API message or local logic)
+            weather_msg = "Seasonal" if use_seasonal else f"{override_temp}°C"
+            col3.metric("☀️ Weather", weather_msg)
 
             # Graphique
             fig = go.Figure()
@@ -97,25 +97,25 @@ if st.sidebar.button("Lancer la Simulation", type="primary"):
                 y=grid_limit,
                 line_dash="dash",
                 line_color="red",
-                annotation_text="Limite",
+                annotation_text="Limit",
             )
             fig.add_trace(
                 go.Scatter(
                     x=df_res["datetime"],
                     y=df_res["predicted_power_kw"],
                     mode="lines",
-                    name="Charge",
+                    name="Load",
                     fill="tozeroy",
                     line=dict(color="#4CAF50", width=3),
                 )
             )
 
             fig.update_layout(
-                title=f"Profil du {selected_date.strftime('%d/%m/%Y')}",
+                title=f"Load Profile for {selected_date.strftime('%Y-%m-%d')}",
                 yaxis_title="kW",
                 height=500,
             )
             st.plotly_chart(fig, use_container_width=True)
 
         except Exception as e:
-            st.error(f"Erreur API : {e}")
+            st.error(f"API Error: {e}")

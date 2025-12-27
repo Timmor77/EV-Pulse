@@ -16,9 +16,9 @@ OUTPUT_FILE = Path("data/processed/weather_data.parquet")
 LATITUDE = 34.1377
 LONGITUDE = -118.1253
 
-# Période définie par ton audit (avec marge de sécurité)
+# Period defined by your audit (with safety margin)
 START_DATE = "2018-09-01"
-END_DATE = "2020-03-01"  # On prend une petite marge pour finir proprement février
+END_DATE = "2020-03-01"  # Small margin to properly finish February
 
 
 def fetch_weather_data():
@@ -68,9 +68,9 @@ def fetch_weather_data():
 
 def process_and_upsample(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Transforme les données Météo horaires en 15-min pour matcher ACN.
-    On utilise l'interpolation linéaire pour la température (ça ne change pas brusquement)
-    et le 'forward fill' pour la pluie (s'il pleut à 14h, on considère qu'il pleut à 14h15).
+    Transform hourly weather data to 15-min intervals to match ACN data.
+    Use linear interpolation for temperature (changes gradually)
+    and forward fill for precipitation (if raining at 2pm, still raining at 2:15pm).
     """
     logger.info("Upsampling weather data from 1H to 15T...")
 
@@ -78,17 +78,17 @@ def process_and_upsample(df: pd.DataFrame) -> pd.DataFrame:
     df = df.set_index("date")
 
     # Resample to 15 min
-    # Température et Radiation : Interpolation linéaire (douce)
+    # Temperature and Radiation: Linear interpolation (smooth)
     df_interp = df[["temperature", "solar_radiation"]].resample("15T").interpolate(method="linear")
 
-    # Précipitation : Forward Fill (ou diviser par 4 si c'est du cumul,
-    # mais OpenMeteo donne souvent l'intensité mm/h. Gardons ffill pour simplifier l'indicateur "il pleut")
+    # Precipitation: Forward Fill (or divide by 4 if cumulative,
+    # but OpenMeteo often gives intensity mm/h. Keep ffill for simplicity as "it's raining" indicator)
     df_pad = df[["precipitation"]].resample("15T").ffill()
 
     # Merge
     final_df = pd.concat([df_interp, df_pad], axis=1).reset_index()
 
-    # Renommer la colonne date pour le merge futur
+    # Rename date column for future merge
     final_df = final_df.rename(columns={"date": "datetime"})
 
     return final_df

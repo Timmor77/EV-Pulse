@@ -13,7 +13,7 @@ LOAD_FILE = Path("data/processed/acn_timeseries_15min.parquet")
 WEATHER_FILE = Path("data/processed/weather_data.parquet")
 OUTPUT_FILE = Path("data/processed/model_context.parquet")
 
-# --- EXPORT DES CONSTANTES (Pour être importées par l'API et le Train) ---
+# --- EXPORTED CONSTANTS (To be imported by API and Training) ---
 CAT_FEATURES = [
     "day_of_week",
     "month",
@@ -27,11 +27,11 @@ CAT_FEATURES = [
 
 def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Transforme un DataFrame brut (date + météo) en DataFrame prêt pour le modèle.
-    Utilisable pour le training (batch) ET pour l'API (live).
+    Transform a raw DataFrame (date + weather) into a model-ready DataFrame.
+    Usable for training (batch) AND for the API (live).
     """
-    # 1. Calendrier de base
-    # On s'assure que c'est bien un datetime
+    # 1. Basic calendar
+    # Ensure it's a datetime type
     if not pd.api.types.is_datetime64_any_dtype(df["datetime"]):
         df["datetime"] = pd.to_datetime(df["datetime"])
 
@@ -41,10 +41,10 @@ def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
     df["month"] = df["datetime"].dt.month
     df["year"] = df["datetime"].dt.year
 
-    # 2. Week-end & Jours Fériés (DYNAMIQUE)
+    # 2. Weekend & Holidays (DYNAMIC)
     df["is_weekend"] = df["day_of_week"] >= 5
 
-    # On récupère les années uniques présentes dans le DF pour charger les bons jours fériés
+    # Get unique years present in the DF to load the correct holidays
     unique_years = df["datetime"].dt.year.unique()
     ca_holidays = holidays.US(state="CA", years=unique_years)
 
@@ -53,20 +53,20 @@ def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
     # 3. Interactions & Business Logic
     df["hour_x_weekend"] = df["hour"] * df["is_weekend"]
 
-    # Heures de pointe (7h-19h)
+    # Peak hours (7am-7pm)
     df["is_active_hour"] = df["hour"].between(7, 19).astype(int)
 
     # Business Time
     df["is_business_time"] = (
         (df["is_active_hour"] == 1)
-        & (~df["is_weekend"])  # Le tilde ~ signifie "inverse" (NOT) pour les booléens
+        & (~df["is_weekend"])  # The tilde ~ means "inverse" (NOT) for booleans
         & (~df["is_holiday"])
     ).astype(int)
 
-    # Interaction Heure x Mois
+    # Hour x Month Interaction
     df["hour_x_month"] = df["hour"] * df["month"]
 
-    # 4. Encodage Cyclique
+    # 4. Cyclical Encoding
     time_float = df["hour"] + df["minute"] / 60.0
     df["hour_sin"] = np.sin(2 * np.pi * time_float / 24.0)
     df["hour_cos"] = np.cos(2 * np.pi * time_float / 24.0)
@@ -81,7 +81,7 @@ def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main():
-    """Pipeline d'exécution pour le Training uniquement"""
+    """Execution pipeline for Training only"""
     if not LOAD_FILE.exists() or not WEATHER_FILE.exists():
         logger.error("Missing input files.")
         return
@@ -90,20 +90,20 @@ def main():
     df_load = pd.read_parquet(LOAD_FILE)
     df_weather = pd.read_parquet(WEATHER_FILE)
 
-    # Merge Inner
+    # Inner Merge
     df = pd.merge(df_load, df_weather, on="datetime", how="inner")
 
-    # Application des features (Appel de la fonction partagée)
+    # Apply features (Call shared function)
     df = add_context_features(df)
 
-    # Nettoyage final
+    # Final cleanup
     cols_to_drop = ["active_chargers"]
     df = df.drop(columns=[c for c in cols_to_drop if c in df.columns])
 
     logger.info(f"Saving Context-Only dataset to {OUTPUT_FILE}...")
     df.to_parquet(OUTPUT_FILE, index=False)
 
-    print("\n--- ✅ Dataset 'Context-Only' Ready ---")
+    print("\n--- ✅ 'Context-Only' Dataset Ready ---")
 
 
 if __name__ == "__main__":

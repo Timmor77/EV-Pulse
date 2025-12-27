@@ -23,7 +23,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# --- Environment Variables (CRITIQUE POUR SECURITE) ---
+# --- Environment Variables (CRITICAL FOR SECURITY) ---
 .env
 .env.local
 .env.*.local
@@ -34,17 +34,17 @@ wheels/
 *.swp
 .DS_Store
 
-# --- Data Science & ML (CRITIQUE POUR POIDS) ---
-# On ignore les données brutes et processées (trop lourd pour Git)
+# --- Data Science & ML (CRITICAL FOR SIZE) ---
+# Ignore raw and processed data (too large for Git)
 data/raw/*
 data/processed/*
 data/external/*
 notebooks/*
-!data/raw/.gitkeep       # Astuce : On garde les dossiers vides
+!data/raw/.gitkeep       # Trick: Keep empty directories
 !data/processed/.gitkeep
 !data/external/.gitkeep
 
-# Modèles entraînés (souvent > 100Mo)
+# Trained models (often > 100MB)
 # src/models/*.pkl
 # src/models/*.joblib
 # src/models/*.bin

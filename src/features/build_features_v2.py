@@ -23,17 +23,17 @@ def add_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
     df["day_of_week"] = df["datetime"].dt.dayofweek
     df["month"] = df["datetime"].dt.month
 
-    # 2. Boolean Features (Simples et Efficaces)
-    # Le week-end est souvent différent
+    # 2. Boolean Features (Simple and Effective)
+    # Weekend is often different
     df["is_weekend"] = df["day_of_week"] >= 5
 
     # 3. Holidays (US - California)
-    # C'est la clé pour éviter les grosses erreurs sur Thanksgiving/Noël
+    # Key for avoiding major errors on Thanksgiving/Christmas
     ca_holidays = holidays.US(state="CA", years=range(2018, 2022))
-    # On crée une colonne booléenne : Est-ce un jour férié ?
+    # Create a boolean column: Is this a holiday?
     df["is_holiday"] = df["datetime"].dt.date.apply(lambda x: x in ca_holidays)
 
-    # 4. Cyclic Encoding (Pour la continuité mathématique)
+    # 4. Cyclic Encoding (For mathematical continuity)
     time_float = df["hour"] + df["minute"] / 60.0
     df["hour_sin"] = np.sin(2 * np.pi * time_float / 24.0)
     df["hour_cos"] = np.cos(2 * np.pi * time_float / 24.0)
@@ -49,24 +49,24 @@ def add_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_robust_lag_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Création de features 'Safe' pour une prévision à 24h (Day-Ahead).
-    On n'utilise QUE des données disponibles la veille.
+    Create 'Safe' features for 24h ahead (Day-Ahead) forecasting.
+    Only uses data available from the previous day.
     """
     logger.info("Adding robust lag features (Day-Ahead safe)...")
     target = "power_kw"
 
-    # 1. Ce qui s'est passé hier à la même heure (Lag 24h)
-    # C'est notre ancre principale.
-    df["lag_24h"] = df[target].shift(96)  # 96 quarts d'heure = 24h
+    # 1. What happened yesterday at the same time (24h Lag)
+    # This is our main anchor.
+    df["lag_24h"] = df[target].shift(96)  # 96 quarter-hours = 24h
 
-    # 2. Ce qui s'est passé il y a une semaine (Lag 7 jours)
-    # Pour capturer la saisonnalité hebdo (Lundi vs Dimanche)
+    # 2. What happened a week ago (7-day Lag)
+    # To capture weekly seasonality (Monday vs Sunday)
     df["lag_1week"] = df[target].shift(96 * 7)
 
-    # 3. Moyenne de la journée d'HIER (et pas des dernières 24h glissantes)
-    # Astuce : On prend la moyenne glissante décalée de 24h
-    # Cela représente "La consommation moyenne d'il y a 24h à 48h"
-    # C'est une info connue totalement au moment de prédire pour demain.
+    # 3. Average of YESTERDAY's consumption (not sliding 24h average)
+    # Trick: Take the rolling average shifted by 24h
+    # This represents "Average consumption from 24h to 48h ago"
+    # This info is fully known when predicting for tomorrow.
     df["avg_energy_yesterday"] = df[target].shift(96).rolling(window=96).mean()
 
     return df
@@ -86,15 +86,15 @@ def main():
     df = add_calendar_features(df)
     df = add_robust_lag_features(df)
 
-    # Nettoyage des NaN dus aux lags (7 jours de perdu au début)
+    # Clean NaN due to lags (7 days lost at beginning)
     df = df.dropna()
 
-    # Sélection des colonnes finales
-    # On garde active_chargers juste pour l'analyse, mais on l'enlèvera du X dans le train
+    # Select final columns
+    # Keep active_chargers for analysis, but remove it from X in training
     logger.info(f"Saving robust dataset to {OUTPUT_FILE}...")
     df.to_parquet(OUTPUT_FILE, index=False)
 
-    print("\n--- ✅ Features 'Day-Ahead' Ready ---")
+    print("\n--- ✅ 'Day-Ahead' Features Ready ---")
     print(df[["datetime", "is_holiday", "lag_24h", "avg_energy_yesterday"]].head())
 
 

@@ -1,39 +1,39 @@
-# Image Python légère et récente
+# Lightweight and recent Python image
 FROM python:3.10-slim
 
-# Installation de curl pour télécharger uv
+# Install curl to download uv
 RUN apt-get update && apt-get install -y \
     curl \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Installation de uv (le gestionnaire de paquets ultra-rapide)
+# Install uv (ultra-fast package manager)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# Dossier de travail
+# Working directory
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 
-# --- CORRECTION ICI ---
-# On retire '--system'. uv va créer un dossier .venv dans /app
-# On active la compilation du bytecode pour que le démarrage soit plus rapide
+# --- FIX HERE ---
+# Remove '--system'. uv will create a .venv folder in /app
+# Enable bytecode compilation for faster startup
 ENV UV_COMPILE_BYTECODE=1
 
-# On lance la synchro (création du .venv)
+# Run sync (creates .venv)
 RUN uv sync --frozen --no-install-project
 
-# CRUCIAL : On ajoute le .venv au PATH du système
-# Ainsi, quand on tapera "python" ou "uvicorn", il utilisera celui du venv automatiquement
+# CRITICAL: Add .venv to system PATH
+# This way, when running "python" or "uvicorn", it will use the venv version automatically
 ENV PATH="/app/.venv/bin:$PATH"
 # ----------------------
 
-# 3. Copie du code et des modèles
+# 3. Copy code and models
 COPY src/ ./src/
 
-# Variables d'environnement pour Python
+# Python environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Commande par défaut (sera surchargée par docker-compose)
+# Default command (will be overridden by docker-compose)
 CMD ["python"]

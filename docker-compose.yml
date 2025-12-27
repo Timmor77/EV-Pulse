@@ -1,5 +1,5 @@
 services:
-  # Service 1 : L'Intelligence (API)
+  # Service 1: The Intelligence (API)
   api:
     build: .
     container_name: ev-pulse-api
@@ -7,10 +7,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Montage des modèles pour éviter de rebuilder l'image si on réentraîne
+      # Mount models to avoid rebuilding the image when retraining
       - ./src/models:/app/src/models
 
-  # Service 2 : L'Interface (Dashboard)
+  # Service 2: The Interface (Dashboard)
   dashboard:
     build: .
     container_name: ev-pulse-dashboard
@@ -18,7 +18,7 @@ services:
     ports:
       - "8501:8501"
     environment:
-      # C'est ici qu'on dit au Dashboard : "L'API n'est pas sur localhost, elle est sur 'api'"
+      # This tells the Dashboard: "The API is not on localhost, it's on 'api'"
       - API_URL=http://api:8000
     depends_on:
       - api

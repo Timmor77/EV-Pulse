@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-# Configuration du logging
+# Logging configuration
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -32,13 +32,13 @@ def load_and_clean_json(filepath: Path) -> pd.DataFrame:
 
     df = pd.DataFrame(data)
 
-    # --- FIX CRITIQUE ICI ---
-    # Force les IDs en string pour éviter l'erreur PyArrow "int vs bytes"
+    # --- CRITICAL FIX ---
+    # Force IDs to string to avoid PyArrow "int vs bytes" error
     id_cols = ["siteID", "clusterID", "stationID", "spaceID", "userID"]
     for col in id_cols:
         if col in df.columns:
-            # On convertit en string et on remplace les 'nan' string par de vrais NaN si nécessaire,
-            # mais pour Parquet, tout en string est plus sûr.
+            # Convert to string and replace 'nan' strings with actual NaN if needed,
+            # but for Parquet, keeping everything as string is safer.
             df[col] = df[col].astype(str)
     # ------------------------
 

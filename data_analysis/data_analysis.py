@@ -7,10 +7,10 @@ import streamlit as st
 # Config page
 st.set_page_config(page_title="EV-Pulse Data Explorer", layout="wide")
 
-st.title("⚡ EV-Pulse : Exploration des Données")
+st.title("⚡ EV-Pulse: Data Exploration")
 
 
-# Chargement optimisé avec cache
+# Optimized data loading with cache
 @st.cache_data
 def load_data():
     df = pd.read_parquet("data/processed/acn_timeseries_15min.parquet")
@@ -20,9 +20,9 @@ def load_data():
 df = load_data()
 
 # Sidebar
-st.sidebar.header("Filtres")
+st.sidebar.header("Filters")
 date_range = st.sidebar.date_input(
-    "Période",
+    "Date Range",
     value=[df["datetime"].min(), df["datetime"].max()],
     min_value=df["datetime"].min(),
     max_value=df["datetime"].max(),
@@ -36,23 +36,23 @@ df_filtered = df.loc[mask]
 
 # --- KPI ---
 col1, col2, col3 = st.columns(3)
-col1.metric("Pic de Puissance (Max Load)", f"{df_filtered['power_kw'].max():.2f} kW")
-col2.metric("Moyenne Charge", f"{df_filtered['power_kw'].mean():.2f} kW")
-col3.metric("Bornes Actives Max", f"{df_filtered['active_chargers'].max()} bornes")
+col1.metric("Peak Power (Max Load)", f"{df_filtered['power_kw'].max():.2f} kW")
+col2.metric("Average Load", f"{df_filtered['power_kw'].mean():.2f} kW")
+col3.metric("Max Active Chargers", f"{df_filtered['active_chargers'].max()} chargers")
 
-# --- GRAPHIQUE 1 : SÉRIE TEMPORELLE ---
-st.subheader("📈 Courbe de Charge (Puissance Totale)")
+# --- CHART 1: TIME SERIES ---
+st.subheader("📈 Load Curve (Total Power)")
 fig_ts = px.line(
     df_filtered,
     x="datetime",
     y="power_kw",
-    title="Puissance consommée au cours du temps",
+    title="Power consumption over time",
 )
 st.plotly_chart(fig_ts, use_container_width=True)
 
-# --- GRAPHIQUE 2 : PROFIL MOYEN JOURNALIER ---
-st.subheader("🕓 Profil Moyen : À quelle heure charge-t-on ?")
-# Extraction de l'heure
+# --- CHART 2: DAILY AVERAGE PROFILE ---
+st.subheader("🕓 Average Profile: When do people charge?")
+# Extract hour
 df_filtered["hour"] = df_filtered["datetime"].dt.hour
 hourly_profile = df_filtered.groupby("hour")["power_kw"].mean().reset_index()
 
@@ -60,18 +60,18 @@ fig_profile = px.bar(
     hourly_profile,
     x="hour",
     y="power_kw",
-    title="Puissance Moyenne par Heure de la Journée",
-    labels={"hour": "Heure (0-23)", "power_kw": "Puissance Moyenne (kW)"},
+    title="Average Power by Hour of Day",
+    labels={"hour": "Hour (0-23)", "power_kw": "Average Power (kW)"},
 )
 st.plotly_chart(fig_profile, use_container_width=True)
 
-# --- ANALYSE DE QUALITÉ ---
+# --- QUALITY ANALYSIS ---
 st.markdown("---")
-st.subheader("🕵️‍♂️ Vérification de la cohérence")
+st.subheader("🕵️‍♂️ Data Consistency Check")
 
-# Zoom sur une semaine type (la première de la sélection)
+# Zoom on a typical week (first week of selection)
 st.write(
-    "Zoom sur les 7 premiers jours de la sélection (pour voir les cycles Jour/Nuit) :"
+    "Zoom on the first 7 days of selection (to observe Day/Night cycles):"
 )
 st.plotly_chart(
     px.line(df_filtered.head(24 * 4 * 7), x="datetime", y="power_kw"),

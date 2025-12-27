@@ -14,70 +14,70 @@ OUTPUT_FILE = Path("data/processed/acn_timeseries_15min.parquet")
 
 def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) -> pd.DataFrame:
     """
-    Transforme une liste de sessions (Start, End, kWh) en une série temporelle continue.
+    Transform a list of sessions (Start, End, kWh) into a continuous time series.
 
-    Hypothèse simplificatrice robuste :
-    La puissance est distribuée uniformément sur la durée de la charge (Rectangular assumption).
-    C'est suffisant pour de la prédiction agrégée.
+    Robust simplifying assumption:
+    Power is distributed uniformly over the charging duration (Rectangular assumption).
+    This is sufficient for aggregated prediction.
     """
 
-    # 1. Définir les bornes temporelles globales
+    # 1. Define global time boundaries
     start_date = df["connectionTime"].min().floor("H")
     end_date = df["disconnectTime"].max().ceil("H")
 
-    # Création de l'index temporel complet (ex: toutes les 15 min de 2018 à 2021)
-    # '15T' est l'alias pandas pour 15 minutes
+    # Create complete time index (e.g., every 15 min from 2018 to 2021)
+    # '15T' is the pandas alias for 15 minutes
     freq = f"{interval_min}T"
     time_index = pd.date_range(start=start_date, end=end_date, freq=freq, tz="UTC")
 
     logger.info(f"Timeline created: {len(time_index)} points from {start_date} to {end_date}")
 
-    # 2. Préparation des structures de données (Numpy pour la vitesse)
-    # On crée un tableau de zéros de la taille de la timeline
+    # 2. Data structure preparation (Numpy for speed)
+    # Create an array of zeros the size of the timeline
     load_curve = np.zeros(len(time_index))
     occupancy_curve = np.zeros(len(time_index))
 
-    # Mapping des dates vers des indices entiers (0, 1, 2, ...)
-    # C'est l'astuce pour aller vite : on ne manipule plus des dates mais des index de tableau
+    # Map dates to integer indices (0, 1, 2, ...)
+    # This is the trick for speed: we no longer manipulate dates but array indices
     timestamps = time_index.to_numpy()
 
-    # On itère sur les sessions (c'est rapide ici car on fait juste des maths simples)
-    # Pour un dataset géant, on pourrait paralléliser, mais pour <100k lignes c'est instantané.
+    # Iterate over sessions (fast here since we're doing simple math)
+    # For a huge dataset, we could parallelize, but for <100k rows it's instant.
     logger.info("Projecting sessions onto timeline...")
 
     count = 0
     total = len(df)
 
     for row in df.itertuples():
-        # Calcul de la durée de charge active (en heures)
-        # On utilise doneChargingTime car après, la voiture est branchée mais ne charge plus (0 kW)
+        # Calculate active charging duration (in hours)
+        # Use doneChargingTime because after that, the car is plugged in but not charging (0 kW)
         charge_start = row.connectionTime
         charge_end = row.doneChargingTime
 
-        # Sécurité : si la fin est avant le début (bug data), on skip
+        # Safety: if end is before start (data bug), skip
         if charge_end <= charge_start:
             continue
 
         duration_hours = (charge_end - charge_start).total_seconds() / 3600
         if duration_hours < (interval_min / 60):
-            # Session trop courte, on ignore ou on compte comme un pic
+            # Session too short, ignore or count as a spike
             continue
 
         avg_power_kw = row.kWhDelivered / duration_hours
 
-        # Trouver les indices dans notre grand tableau
-        # searchsorted est très rapide pour trouver où s'insère une date
+        # Find indices in our large array
+        # searchsorted is very fast for finding where a date fits
         idx_start = np.searchsorted(timestamps, charge_start)
         idx_end_charge = np.searchsorted(timestamps, charge_end)
         idx_end_conn = np.searchsorted(timestamps, row.disconnectTime)
 
-        # Remplissage du tableau de charge (Power)
-        # On ajoute la puissance moyenne sur toute la durée de la charge
+        # Fill load array (Power)
+        # Add average power over the entire charging duration
         if idx_end_charge > idx_start:
             load_curve[idx_start:idx_end_charge] += avg_power_kw
 
-        # Remplissage du tableau d'occupation (Occupancy)
-        # La voiture occupe la borne jusqu'au disconnectTime, même si elle ne charge plus
+        # Fill occupancy array (Occupancy)
+        # The car occupies the charger until disconnectTime, even if no longer charging
         if idx_end_conn > idx_start:
             occupancy_curve[idx_start:idx_end_conn] += 1
 
@@ -85,7 +85,7 @@ def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) ->
         if count % 10000 == 0:
             logger.info(f"Processed {count}/{total} sessions")
 
-    # 3. Assemblage final
+    # 3. Final assembly
     ts_df = pd.DataFrame(
         {
             "datetime": time_index,
@@ -94,7 +94,7 @@ def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) ->
         }
     )
 
-    # Typage optimal
+    # Optimal typing
     ts_df["power_kw"] = ts_df["power_kw"].astype("float32")
     ts_df["active_chargers"] = ts_df["active_chargers"].astype("int32")
 
@@ -108,7 +108,7 @@ def main():
 
     df = pd.read_parquet(INPUT_FILE)
 
-    # Filtrage optionnel : On peut se concentrer sur Caltech pour commencer si on veut
+    # Optional filtering: Can focus on Caltech to start if needed
     # df = df[df['source_site'] == 'caltech']
 
     logger.info("Generating Time Series (15 min intervals)...")
@@ -117,7 +117,7 @@ def main():
     logger.info(f"Saving Time Series to {OUTPUT_FILE}...")
     ts_df.to_parquet(OUTPUT_FILE, index=False)
 
-    logger.info("Done! Aperçu des données :")
+    logger.info("Done! Data preview:")
     print(ts_df.head())
     print(ts_df.describe())
 

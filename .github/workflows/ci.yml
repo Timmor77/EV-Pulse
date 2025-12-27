@@ -21,12 +21,12 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Lint with Ruff (Qualité du code)
+      - name: Lint with Ruff (Code quality)
         run: uv run ruff check .
       
-      - name: Format Check (Vérifie si le code est beau)
+      - name: Format Check (Code formatting validation)
         run: uv run ruff format --check .
 
-      # On désactive les tests pour l'instant car on n'en a pas écrit
+      # Tests disabled - no test suite implemented yet
       # - name: Run Tests
       #   run: uv run pytest

@@ -53,7 +53,7 @@ def print_header(title: str):
 
 
 def regression_report(y_true, y_pred) -> dict:
-    y_pred = np.maximum(y_pred, 0)  # sécurité physique
+    y_pred = np.maximum(y_pred, 0)  # physical safety
     mae = mean_absolute_error(y_true, y_pred)
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     r2 = r2_score(y_true, y_pred)
@@ -67,7 +67,7 @@ def train_and_evaluate():
     print_header("LightGBM — Power Forecast (Context Only)")
 
     if not INPUT_FILE.exists():
-        logger.error("Dataset introuvable: %s", INPUT_FILE)
+        logger.error("Dataset not found: %s", INPUT_FILE)
         return
 
     df = pd.read_parquet(INPUT_FILE).sort_values("datetime").reset_index(drop=True)

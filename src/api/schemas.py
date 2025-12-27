@@ -4,9 +4,9 @@ from pydantic import BaseModel, Field
 
 
 class SimulationRequest(BaseModel):
-    date: str = Field(..., description="Date cible au format YYYY-MM-DD", example="2025-07-14")
-    override_temp: float | None = Field(None, description="Forcer la température moyenne (°C)", example=30.5)
-    override_sun: float | None = Field(None, description="Forcer l'ensoleillement max (W/m²)", example=800.0)
+    date: str = Field(..., description="Target date in YYYY-MM-DD format", example="2025-07-14")
+    override_temp: float | None = Field(None, description="Override average temperature (°C)", example=30.5)
+    override_sun: float | None = Field(None, description="Override max solar radiation (W/m²)", example=800.0)
 
 
 class PredictionPoint(BaseModel):
