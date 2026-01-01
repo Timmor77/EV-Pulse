@@ -24,27 +24,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- CUSTOM STYLING ---
-st.markdown(
-    """
-    <style>
-    .main > div {
-        padding-top: 1rem;
-    }
-    .stMetric {
-        background-color: #1e1e1e;
-        padding: 15px;
-        border-radius: 10px;
-        border-left: 4px solid #4CAF50;
-    }
-    .warning-metric {
-        border-left-color: #ff5722 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 st.title("⚡ EV-Pulse: Smart Charging Simulator")
 st.markdown("*AI-powered load forecasting for EV charging infrastructure*")
 
