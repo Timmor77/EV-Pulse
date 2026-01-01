@@ -21,7 +21,6 @@ from src.api.schemas import (
     HealthResponse,
     SimulationRequest,
     SimulationResponse,
-    SimulationSummary,
 )
 from src.features.build_features_v3 import CAT_FEATURES, add_context_features
 
