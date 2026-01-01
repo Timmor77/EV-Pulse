@@ -43,6 +43,8 @@ notebooks/*
 !data/raw/.gitkeep       # Trick: Keep empty directories
 !data/processed/.gitkeep
 !data/external/.gitkeep
+tests/*
+
 
 # Trained models (often > 100MB)
 # src/models/*.pkl

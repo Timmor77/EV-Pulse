@@ -1,3 +1,10 @@
+"""Weather data fetching module using Open-Meteo API.
+
+This module fetches historical weather data for the Pasadena, CA area
+(Caltech/JPL location) and upsamples it to match the 15-minute resolution
+of the charging data time series.
+"""
+
 import logging
 from pathlib import Path
 
@@ -6,7 +13,7 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
-# Config
+# Configuration
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -36,7 +43,7 @@ def fetch_weather_data():
         "start_date": START_DATE,
         "end_date": END_DATE,
         "hourly": ["temperature_2m", "precipitation", "direct_radiation"],
-        "timezone": "UTC",  # Important : On reste en UTC comme les données ACN
+        "timezone": "UTC",  # Keep UTC to match ACN data timezone
     }
 
     responses = openmeteo.weather_api(url, params=params)

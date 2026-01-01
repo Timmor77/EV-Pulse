@@ -1,3 +1,9 @@
+"""Data processing module for ACN charging session data.
+
+This module handles loading, cleaning, and standardizing raw JSON data
+from multiple ACN sites into a unified Parquet format for analysis.
+"""
+
 import json
 import logging
 from pathlib import Path
@@ -19,8 +25,19 @@ FILES_TO_PROCESS = [
 
 
 def load_and_clean_json(filepath: Path) -> pd.DataFrame:
-    """
-    Loads a JSON file, cleans column names, parses dates, and handles missing values.
+    """Load and clean a JSON file containing charging session data.
+
+    Performs the following operations:
+    - Parses dates and converts to UTC timezone
+    - Converts ID columns to strings for Parquet compatibility
+    - Filters invalid rows (missing dates, zero energy)
+    - Adds source site identifier
+
+    Args:
+        filepath: Path to the JSON file.
+
+    Returns:
+        Cleaned DataFrame ready for further processing.
     """
     logger.info(f"Loading raw data from: {filepath}")
 

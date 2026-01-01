@@ -1,10 +1,16 @@
+"""Time series generation module for EV charging data.
+
+This module transforms individual charging session records into a continuous
+time series representation with 15-minute resolution, suitable for forecasting.
+"""
+
 import logging
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-# Config
+# Configuration
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -13,12 +19,18 @@ OUTPUT_FILE = Path("data/processed/acn_timeseries_15min.parquet")
 
 
 def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) -> pd.DataFrame:
-    """
-    Transform a list of sessions (Start, End, kWh) into a continuous time series.
+    """Transform charging sessions into a continuous time series.
 
-    Robust simplifying assumption:
-    Power is distributed uniformly over the charging duration (Rectangular assumption).
-    This is sufficient for aggregated prediction.
+    Uses a uniform power distribution assumption (rectangular) over the charging
+    duration. This simplification is appropriate for aggregated load prediction.
+
+    Args:
+        df: DataFrame with columns 'connectionTime', 'disconnectTime',
+            'doneChargingTime', and 'kWhDelivered'.
+        interval_min: Time resolution in minutes (default: 15).
+
+    Returns:
+        DataFrame with columns 'datetime', 'power_kw', and 'active_chargers'.
     """
 
     # 1. Define global time boundaries

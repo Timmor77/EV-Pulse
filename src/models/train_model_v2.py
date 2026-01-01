@@ -1,3 +1,10 @@
+"""LightGBM model training pipeline for EV charging load prediction.
+
+This module trains a gradient boosting model using context-only features
+(no lag features), enabling robust prediction for any future date based
+solely on calendar and weather context.
+"""
+
 import logging
 from pathlib import Path
 
@@ -10,7 +17,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import TimeSeriesSplit
 
 # =========================
-# Config
+# Configuration
 # =========================
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("lgbm_power")
