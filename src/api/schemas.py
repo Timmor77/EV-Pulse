@@ -81,9 +81,7 @@ class SimulationResponse(BaseModel):
                     "grid_capacity_limit_kw": 150.0,
                 },
                 "weather": {"temperature_c": 24.5, "source": "seasonal-average"},
-                "points": [
-                    {"datetime": "2025-07-14T00:00:00", "predicted_power_kw": 5.2, "is_peak_warning": False}
-                ],
+                "points": [{"datetime": "2025-07-14T00:00:00", "predicted_power_kw": 5.2, "is_peak_warning": False}],
                 "message": "Simulation completed for 2025-07-14 (seasonal-average: 24.5°C)",
             }
         }

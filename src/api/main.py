@@ -213,11 +213,13 @@ async def simulate(request: SimulationRequest) -> dict[str, Any]:
             if is_warning:
                 warning_count += 1
 
-            points.append({
-                "datetime": dt,
-                "predicted_power_kw": val,
-                "is_peak_warning": is_warning,
-            })
+            points.append(
+                {
+                    "datetime": dt,
+                    "predicted_power_kw": val,
+                    "is_peak_warning": is_warning,
+                }
+            )
 
         # Calculate summary statistics
         total_energy = round(sum(predictions) / 4, 2)  # kWh (15min intervals)
