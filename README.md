@@ -1,6 +1,6 @@
 # ⚡ EV-Pulse: AI-Powered Smart Charging Simulator
 
-![Python](https://img.shields.io/badge/Python-3.10-blue) ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-teal) ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red) ![Docker](https://img.shields.io/badge/Deploy-Docker-blue)
+![CI](https://github.com/Timmor77/EV-Pulse/actions/workflows/ci.yml/badge.svg) ![Python](https://img.shields.io/badge/Python-3.10-blue) ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-teal) ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red) ![Docker](https://img.shields.io/badge/Deploy-Docker-blue)
 
 **EV-Pulse** is an end-to-end Machine Learning solution designed to optimize Electric Vehicle (EV) charging infrastructures. It acts as a **Digital Twin**, simulating future power consumption based on calendar context and weather conditions, without relying on real-time sensor data history.
 
@@ -76,6 +76,12 @@ If you want to develop without Docker.
     uv run streamlit run src/dashboard/app.py
     ```
 
+### Running the Tests
+```bash
+uv sync --extra dev
+uv run pytest
+```
+
 ---
 
 ## 📂 Project Structure
@@ -92,6 +98,7 @@ EV-Pulse/
 │   │   └── app.py
 │   ├── features/        # Feature Engineering Logic (Shared)
 │   └── models/          # Model training scripts & saved .pkl
+├── tests/               # Unit & API tests (pytest)
 ├── Dockerfile           # Multi-stage Docker build
 ├── docker-compose.yml   # Orchestrator
 ├── pyproject.toml       # Dependencies (uv)
