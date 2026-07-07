@@ -29,9 +29,7 @@ date_range = st.sidebar.date_input(
 )
 
 # Filtrage
-mask = (df["datetime"].dt.date >= date_range[0]) & (
-    df["datetime"].dt.date <= date_range[1]
-)
+mask = (df["datetime"].dt.date >= date_range[0]) & (df["datetime"].dt.date <= date_range[1])
 df_filtered = df.loc[mask]
 
 # --- KPI ---
@@ -70,9 +68,7 @@ st.markdown("---")
 st.subheader("🕵️‍♂️ Data Consistency Check")
 
 # Zoom on a typical week (first week of selection)
-st.write(
-    "Zoom on the first 7 days of selection (to observe Day/Night cycles):"
-)
+st.write("Zoom on the first 7 days of selection (to observe Day/Night cycles):")
 st.plotly_chart(
     px.line(df_filtered.head(24 * 4 * 7), x="datetime", y="power_kw"),
     use_container_width=True,
