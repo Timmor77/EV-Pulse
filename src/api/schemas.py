@@ -16,6 +16,7 @@ class SimulationRequest(BaseModel):
         ...,
         description="Target date in YYYY-MM-DD format",
         json_schema_extra={"example": "2025-07-14"},
+        pattern=r"^\d{4}-\d{2}-\d{2}$",
     )
     override_temp: float | None = Field(
         None,

@@ -6,7 +6,7 @@ calendar context and weather conditions.
 """
 
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -68,10 +68,10 @@ app = FastAPI(
 )
 
 # Enable CORS for dashboard integration
+# Note: credentials are not allowed with a wildcard origin (CORS spec)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -96,7 +96,7 @@ async def health_check() -> dict[str, Any]:
         "status": "healthy" if model_loaded else "degraded",
         "model_loaded": model_loaded,
         "version": API_VERSION,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -131,8 +131,7 @@ def prepare_simulation_data(
     df = pd.DataFrame({"datetime": dates})
 
     # 2. Smart Weather Handling with seasonal defaults
-    current_month = dates[0].month
-    avg_temp, avg_sun = CLIMATE_STATS.get(current_month, (20.0, 600.0))
+    avg_temp, avg_sun = get_climate_defaults(dates[0])
 
     # Use provided values or fall back to seasonal averages
     sim_temp = temp if temp is not None else avg_temp
@@ -225,7 +224,7 @@ async def simulate(request: SimulationRequest) -> dict[str, Any]:
         total_energy = round(sum(predictions) / 4, 2)  # kWh (15min intervals)
         avg_power = round(float(np.mean(predictions)), 2)
         temp_used = df_features["temperature"].iloc[0]
-        weather_source = "user-defined" if request.override_temp else "seasonal-average"
+        weather_source = "user-defined" if request.override_temp is not None else "seasonal-average"
 
         return {
             "date": request.date,
@@ -252,7 +251,7 @@ async def simulate(request: SimulationRequest) -> dict[str, Any]:
         )
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Invalid input value: {e}",
         )
     except Exception as e:
