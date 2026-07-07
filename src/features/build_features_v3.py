@@ -67,7 +67,7 @@ def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # Get unique years present in the DataFrame to load correct holiday calendar
     unique_years = df["datetime"].dt.year.unique()
-    ca_holidays = holidays.US(state="CA", years=unique_years)
+    ca_holidays = holidays.US(subdiv="CA", years=unique_years)
 
     df["is_holiday"] = df["datetime"].dt.date.apply(lambda x: x in ca_holidays)
 

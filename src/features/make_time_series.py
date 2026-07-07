@@ -34,12 +34,11 @@ def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) ->
     """
 
     # 1. Define global time boundaries
-    start_date = df["connectionTime"].min().floor("H")
-    end_date = df["disconnectTime"].max().ceil("H")
+    start_date = df["connectionTime"].min().floor("h")
+    end_date = df["disconnectTime"].max().ceil("h")
 
     # Create complete time index (e.g., every 15 min from 2018 to 2021)
-    # '15T' is the pandas alias for 15 minutes
-    freq = f"{interval_min}T"
+    freq = f"{interval_min}min"
     time_index = pd.date_range(start=start_date, end=end_date, freq=freq, tz="UTC")
 
     logger.info(f"Timeline created: {len(time_index)} points from {start_date} to {end_date}")

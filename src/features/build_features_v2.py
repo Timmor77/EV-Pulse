@@ -29,7 +29,7 @@ def add_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # 3. Holidays (US - California)
     # Key for avoiding major errors on Thanksgiving/Christmas
-    ca_holidays = holidays.US(state="CA", years=range(2018, 2022))
+    ca_holidays = holidays.US(subdiv="CA", years=range(2018, 2022))
     # Create a boolean column: Is this a holiday?
     df["is_holiday"] = df["datetime"].dt.date.apply(lambda x: x in ca_holidays)
 

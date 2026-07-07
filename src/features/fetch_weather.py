@@ -79,18 +79,18 @@ def process_and_upsample(df: pd.DataFrame) -> pd.DataFrame:
     Use linear interpolation for temperature (changes gradually)
     and forward fill for precipitation (if raining at 2pm, still raining at 2:15pm).
     """
-    logger.info("Upsampling weather data from 1H to 15T...")
+    logger.info("Upsampling weather data from 1h to 15min...")
 
     # Set index
     df = df.set_index("date")
 
     # Resample to 15 min
     # Temperature and Radiation: Linear interpolation (smooth)
-    df_interp = df[["temperature", "solar_radiation"]].resample("15T").interpolate(method="linear")
+    df_interp = df[["temperature", "solar_radiation"]].resample("15min").interpolate(method="linear")
 
     # Precipitation: Forward Fill (or divide by 4 if cumulative,
     # but OpenMeteo often gives intensity mm/h. Keep ffill for simplicity as "it's raining" indicator)
-    df_pad = df[["precipitation"]].resample("15T").ffill()
+    df_pad = df[["precipitation"]].resample("15min").ffill()
 
     # Merge
     final_df = pd.concat([df_interp, df_pad], axis=1).reset_index()
