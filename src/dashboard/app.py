@@ -109,6 +109,10 @@ if st.sidebar.button("🚀 Run Simulation", type="primary", use_container_width=
             growth_factor = 1 + (ev_growth / 100)
             df_res["predicted_power_kw"] = df_res["predicted_power_kw"] * growth_factor
 
+            # Recompute warnings locally: growth factor and custom grid limit
+            # can differ from the API defaults
+            df_res["is_peak_warning"] = df_res["predicted_power_kw"] > grid_limit
+
             # Calculate statistics with growth factor
             total_energy = sum(df_res["predicted_power_kw"]) / 4
             peak_power = df_res["predicted_power_kw"].max()
