@@ -43,8 +43,6 @@ notebooks/*
 !data/raw/.gitkeep       # Trick: Keep empty directories
 !data/processed/.gitkeep
 !data/external/.gitkeep
-tests/*
-
 
 # Trained models (often > 100MB)
 # src/models/*.pkl
@@ -52,9 +50,11 @@ tests/*
 # src/models/*.bin
 # src/models/*.h5
 # src/models/*.onnx
+
+# Legacy v1 artifacts (kept locally only)
 src/models/lgbm_model_v1.pkl
 src/models/train_model_v1.py
-data_analysis/*
+
 # Notebook checkpoints
 .ipynb_checkpoints
 

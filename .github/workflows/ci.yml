@@ -27,6 +27,5 @@ jobs:
       - name: Format Check (Code formatting validation)
         run: uv run ruff format --check .
 
-      # Tests disabled - no test suite implemented yet
-      # - name: Run Tests
-      #   run: uv run pytest
+      - name: Run Tests
+        run: uv run pytest
