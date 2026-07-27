@@ -1,24 +1,24 @@
-# ⚡ EV-Pulse: AI-Powered Smart Charging Simulator
+# ⚡ EV-Pulse: EV Charging Load Simulator
 
-![CI](https://github.com/Timmor77/EV-Pulse/actions/workflows/ci.yml/badge.svg) ![Python](https://img.shields.io/badge/Python-3.10-blue) ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-teal) ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red) ![Docker](https://img.shields.io/badge/Deploy-Docker-blue)
+![CI](https://github.com/Timmor77/EV-Pulse/actions/workflows/ci.yml/badge.svg) ![Python](https://img.shields.io/badge/Python-3.10-blue) ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-teal) ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red) ![Docker](https://img.shields.io/badge/Container-Docker-blue)
 
-**EV-Pulse** is an end-to-end Machine Learning solution designed to optimize Electric Vehicle (EV) charging infrastructures. It acts as a **Digital Twin**, simulating future power consumption based on calendar context and weather conditions, without relying on real-time sensor data history.
+**EV-Pulse** is a small end-to-end project for exploring day-ahead EV charging load. It predicts a daily profile from calendar and weather context, without using recent consumption as an input.
 
 ## 🎯 Business Value & Problem Solved
-Corporate campuses face two major challenges with EV adoption:
+Charging sites face two practical questions:
 1.  **Grid Instability:** Unpredictable peaks in demand can trip circuit breakers.
-2.  **Cost Overruns:** Exceeding power capacity (subscribed power) triggers massive financial penalties.
+2.  **Capacity Planning:** Expected peaks help size and operate the electrical connection.
 
-**EV-Pulse empowers Facility Managers to:**
+The demo lets a user:
 * 🔮 **Forecast** load profiles 24 hours in advance (Day-Ahead).
 * ⚠️ **Anticipate** capacity overloads (Peak Shaving alerts).
-* 🧪 **Simulate** "What-If" scenarios (e.g., "What if EV adoption doubles next year?").
+* 🧪 **Simulate** different temperature and sunlight assumptions.
 
 ---
 
 ## 🏗️ Technical Architecture
 
-The project follows a modern MLOps microservices architecture:
+The project deliberately keeps a straightforward architecture:
 
 1.  **Data Pipeline:** Cleaning and processing of complex JSON time-series (ACN-Data Caltech/JPL).
 2.  **Core Model:** **LightGBM Regressor** (Context-Aware).
@@ -26,18 +26,36 @@ The project follows a modern MLOps microservices architecture:
     * *Benefit:* The model is robust to sensor failure and can simulate any future date purely based on context (Time + Weather).
 3.  **API (Backend):** **FastAPI** service serving predictions. Includes a **Climatology Fallback** system (uses seasonal averages if no weather data is provided).
 4.  **Dashboard (Frontend):** **Streamlit** interface for interactive simulation and visualization.
-5.  **Infrastructure:** Fully containerized with **Docker** & **Docker Compose**. Package management via `uv`.
+5.  **Packaging:** **Docker Compose** starts the API and dashboard locally. Package management uses `uv`.
 
 ---
 
 ## 📊 Model Performance
 
-* **Algorithm:** LightGBM (Gradient Boosting)
-* **Key Features:** `is_business_time`, `solar_radiation` (simulated), `is_holiday` (dynamic US calendar), `hour_sin/cos`.
-* **Metrics (Test Set):**
-    * **R² Score:** ~83%
-    * **MAE (Mean Absolute Error):** ~14 kW (on a 300 kW max load)
-* **Capabilities:** Accurately captures weekly cycles, holidays (Christmas, Thanksgiving), and seasonal weather impacts (AC/Heating).
+The evaluation keeps the last 60 complete calendar days untouched (1 January to 29 February 2020). Model selection happens before this period: each `TimeSeriesSplit` fold uses the tail of its own training block for early stopping, then refits on the complete fold training block. The comparison baseline is simply the historical mean for the same weekday and 15-minute time slot. The 93 rows from the incomplete 1 March source day are not used for evaluation.
+
+| Final holdout | LightGBM | Calendar baseline |
+|---|---:|---:|
+| MAE | **11.44 kW** | 13.57 kW |
+| RMSE | **17.61 kW** | 24.40 kW |
+| R² | **0.907** | 0.822 |
+
+The model improves holdout MAE by **15.7%** over the baseline. Across the five development folds, its mean MAE is 13.32 kW versus 13.66 kW for the baseline; the baseline still wins on one fold, so the gain is modest and not uniform over time.
+
+| Holdout period | Rows | Model MAE | Baseline MAE |
+|---|---:|---:|---:|
+| January 2020 | 2,976 | 11.74 kW | 14.81 kW |
+| February 2020 | 2,784 | 11.11 kW | 12.24 kW |
+
+The complete machine-readable result, including split dates, fold metrics, feature list, dataset SHA-256 and per-period metrics, is stored in [`reports/model_evaluation.json`](reports/model_evaluation.json).
+
+To reproduce it after rebuilding the processed dataset:
+
+```bash
+uv run python -m src.models.train_model_v2
+```
+
+This command writes the evaluation report and refits the served model on all available rows using the tree count selected before the holdout.
 
 ---
 
@@ -88,7 +106,7 @@ uv run pytest
 
 ```text
 EV-Pulse/
-├── .github/workflows/   # CI/CD Pipeline (Linting & Quality Checks)
+├── .github/workflows/   # CI: lint, format and tests
 ├── data/                # Raw and Processed data (ignored by git)
 ├── src/
 │   ├── api/             # FastAPI Backend
@@ -98,6 +116,7 @@ EV-Pulse/
 │   │   └── app.py
 │   ├── features/        # Feature Engineering Logic (Shared)
 │   └── models/          # Model training scripts & saved .pkl
+├── reports/             # Reproducible model evaluation result
 ├── tests/               # Unit & API tests (pytest)
 ├── Dockerfile           # Multi-stage Docker build
 ├── docker-compose.yml   # Orchestrator
@@ -116,7 +135,7 @@ EV-Pulse/
 
 * **Visualization**: Streamlit, Plotly
 
-* **DevOps**: Docker, GitHub Actions (CI)
+* **Tooling**: Docker, GitHub Actions (CI; no automated deployment)
 
 ## Citations
 ```text

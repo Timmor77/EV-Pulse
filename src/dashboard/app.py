@@ -24,8 +24,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.title("⚡ EV-Pulse: Smart Charging Simulator")
-st.markdown("*AI-powered load forecasting for EV charging infrastructure*")
+st.title("⚡ EV-Pulse: Charging Load Simulator")
+st.markdown("*A small day-ahead forecasting project for EV charging sites*")
 
 # --- SIDEBAR CONFIGURATION ---
 st.sidebar.header("⚙️ Simulation Settings")
@@ -87,7 +87,7 @@ st.sidebar.divider()
 
 # --- RUN SIMULATION ---
 if st.sidebar.button("🚀 Run Simulation", type="primary", use_container_width=True):
-    with st.spinner("Running AI prediction model..."):
+    with st.spinner("Running the prediction model..."):
         try:
             # API Request
             payload = {

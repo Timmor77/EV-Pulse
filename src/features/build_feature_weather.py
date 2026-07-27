@@ -126,7 +126,7 @@ def main():
     df.to_parquet(OUTPUT_FILE, index=False)
 
     # Preview final columns
-    print("\n--- ✅ Final Dataset Ready for ML ---")
+    print("\n--- Final dataset ready for ML ---")
     print(f"Period: {df['datetime'].min()} -> {df['datetime'].max()}")
     print(f"Columns ({len(df.columns)}): {list(df.columns)}")
     print(df.head(3))

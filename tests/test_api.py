@@ -6,7 +6,18 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from src.api.main import app, prepare_simulation_data
+
+
+def test_simulation_features_cover_one_day_and_use_sun_override():
+    """The API should build the same 96-row feature contract used in training."""
+    frame, dates = prepare_simulation_data("2025-07-14", temp=0.0, sun=800.0)
+
+    assert len(frame) == len(dates) == 96
+    assert frame["temperature"].eq(0.0).all()
+    assert frame.loc[frame["hour"] == 0, "solar_radiation"].eq(0.0).all()
+    assert frame["solar_radiation"].max() > 700.0
+    assert set(frame["minute"].unique()) == {0, 15, 30, 45}
 
 
 class TestAPIEndpoints:
@@ -79,6 +90,11 @@ class TestAPIEndpoints:
         assert "datetime" in point
         assert "predicted_power_kw" in point
         assert "is_peak_warning" in point
+        assert all(item["predicted_power_kw"] >= 0 for item in data["points"])
+
+        powers = [item["predicted_power_kw"] for item in data["points"]]
+        assert summary["peak_power_kw"] == max(powers)
+        assert summary["warning_count"] == sum(item["is_peak_warning"] for item in data["points"])
 
     def test_simulate_with_weather_override(self, client):
         """Test simulation with custom weather parameters."""

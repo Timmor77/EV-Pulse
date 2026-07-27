@@ -177,3 +177,40 @@ class TestAddContextFeatures:
 
         result = add_context_features(df)
         assert pd.api.types.is_datetime64_any_dtype(result["datetime"])
+
+    def test_quarter_hour_encoding_is_distinct(self):
+        """Cyclical time features must keep the four 15-minute slots distinct."""
+        frame = pd.DataFrame(
+            {
+                "datetime": pd.to_datetime(
+                    [
+                        "2025-07-14 10:00:00",
+                        "2025-07-14 10:15:00",
+                        "2025-07-14 10:30:00",
+                        "2025-07-14 10:45:00",
+                    ]
+                )
+            }
+        )
+
+        result = add_context_features(frame)
+
+        assert result["minute"].tolist() == [0, 15, 30, 45]
+        assert result["hour_sin"].nunique() == 4
+
+    def test_utc_training_time_is_converted_to_pasadena_calendar_time(self):
+        """Calendar features should describe the site, not the UTC clock."""
+        frame = pd.DataFrame(
+            {
+                "datetime": pd.to_datetime(
+                    ["2025-07-14 06:30:00", "2025-07-14 07:00:00"],
+                    utc=True,
+                )
+            }
+        )
+
+        result = add_context_features(frame)
+
+        assert result["hour"].tolist() == [23, 0]
+        assert result["minute"].tolist() == [30, 0]
+        assert result["day_of_week"].tolist() == [6, 0]

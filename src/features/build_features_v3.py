@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 LOAD_FILE = Path("data/processed/acn_timeseries_15min.parquet")
 WEATHER_FILE = Path("data/processed/weather_data.parquet")
 OUTPUT_FILE = Path("data/processed/model_context.parquet")
+SITE_TIMEZONE = "America/Los_Angeles"
 
 # --- EXPORTED CONSTANTS (To be imported by API and Training) ---
 CAT_FEATURES = [
@@ -52,24 +53,29 @@ def add_context_features(df: pd.DataFrame) -> pd.DataFrame:
         - Cyclical: hour_sin/cos, day_sin/cos, month_sin/cos
     """
     # 1. Basic calendar
-    # Ensure it's a datetime type
+    # Training timestamps are stored in UTC. Calendar behavior, however, is
+    # local to the charging site. Naive API timestamps are already local.
     if not pd.api.types.is_datetime64_any_dtype(df["datetime"]):
         df["datetime"] = pd.to_datetime(df["datetime"])
 
-    df["hour"] = df["datetime"].dt.hour
-    df["minute"] = df["datetime"].dt.minute
-    df["day_of_week"] = df["datetime"].dt.dayofweek
-    df["month"] = df["datetime"].dt.month
-    df["year"] = df["datetime"].dt.year
+    calendar_time = df["datetime"]
+    if isinstance(calendar_time.dtype, pd.DatetimeTZDtype):
+        calendar_time = calendar_time.dt.tz_convert(SITE_TIMEZONE)
+
+    df["hour"] = calendar_time.dt.hour
+    df["minute"] = calendar_time.dt.minute
+    df["day_of_week"] = calendar_time.dt.dayofweek
+    df["month"] = calendar_time.dt.month
+    df["year"] = calendar_time.dt.year
 
     # Weekend & Holidays (dynamically computed based on data range)
     df["is_weekend"] = df["day_of_week"] >= 5
 
     # Get unique years present in the DataFrame to load correct holiday calendar
-    unique_years = df["datetime"].dt.year.unique()
+    unique_years = calendar_time.dt.year.unique()
     ca_holidays = holidays.US(subdiv="CA", years=unique_years)
 
-    df["is_holiday"] = df["datetime"].dt.date.apply(lambda x: x in ca_holidays)
+    df["is_holiday"] = calendar_time.dt.date.apply(lambda value: value in ca_holidays)
 
     # Interactions & Business Logic
     df["hour_x_weekend"] = df["hour"] * df["is_weekend"]
@@ -128,7 +134,7 @@ def main():
     logger.info(f"Saving Context-Only dataset to {OUTPUT_FILE}...")
     df.to_parquet(OUTPUT_FILE, index=False)
 
-    print("\n--- ✅ 'Context-Only' Dataset Ready ---")
+    print("\n--- Context-only dataset ready ---")
 
 
 if __name__ == "__main__":

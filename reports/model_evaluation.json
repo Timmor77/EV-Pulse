@@ -1,0 +1,396 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-27T21:35:10.428606+00:00",
+  "reproduce": "uv run python -m src.models.train_model_v2",
+  "source": {
+    "training_script": "src/models/train_model_v2.py",
+    "training_script_sha256": "7bbe14ab737448b32621ae5d3ae6534901a5968d6d4894f66083eb51b9c43408",
+    "feature_script": "src/features/build_features_v3.py",
+    "feature_script_sha256": "334a61b0bfd9f98d34ff4b364c9b5a0c1d9a6573f138fd0db20eac44d659096e",
+    "uv_lock_sha256": "f93b1d0bf7f3233360c4884e30b2ed690d8aa8e7facc692e3ef551f2ae444d38",
+    "versions": {
+      "lightgbm": "4.6.0",
+      "numpy": "2.2.6",
+      "pandas": "2.3.3"
+    }
+  },
+  "dataset": {
+    "path": "data/processed/model_context.parquet",
+    "sha256": "b7c93798f4845dffc1e767d735738da880a568e8816a6466be5c953df637fbbb",
+    "rows": 52605,
+    "start": "2018-09-01T00:00:00+00:00",
+    "end": "2020-03-01T23:00:00+00:00"
+  },
+  "method": {
+    "target": "power_kw",
+    "features": [
+      "temperature",
+      "solar_radiation",
+      "precipitation",
+      "hour",
+      "minute",
+      "day_of_week",
+      "month",
+      "year",
+      "is_weekend",
+      "is_holiday",
+      "hour_x_weekend",
+      "is_active_hour",
+      "is_business_time",
+      "hour_x_month",
+      "hour_sin",
+      "hour_cos",
+      "day_sin",
+      "day_cos",
+      "month_sin",
+      "month_cos"
+    ],
+    "final_holdout_days": 60,
+    "cv_splits": 5,
+    "inner_validation_fraction": 0.15,
+    "early_stopping_rounds": 150,
+    "lightgbm_parameters": {
+      "n_estimators": 5000,
+      "learning_rate": 0.03,
+      "num_leaves": 40,
+      "random_state": 42,
+      "n_jobs": 1,
+      "verbosity": -1
+    },
+    "categorical_features": [
+      "day_of_week",
+      "month",
+      "hour",
+      "is_business_time",
+      "is_holiday",
+      "is_weekend",
+      "is_active_hour"
+    ],
+    "baseline": "mean power by weekday, hour and minute; global train mean fallback"
+  },
+  "split": {
+    "development": {
+      "rows": 46752,
+      "start": "2018-09-01T00:00:00+00:00",
+      "end": "2019-12-31T23:45:00+00:00"
+    },
+    "final_holdout": {
+      "rows": 5760,
+      "start": "2020-01-01T00:00:00+00:00",
+      "end": "2020-02-29T23:45:00+00:00"
+    },
+    "incomplete_tail_excluded_from_evaluation": {
+      "rows": 93,
+      "reason": "The final source day does not contain all 15-minute intervals."
+    }
+  },
+  "cross_validation": {
+    "folds": [
+      {
+        "fold": 1,
+        "train": {
+          "start": "2018-09-01T00:00:00+00:00",
+          "end": "2018-11-21T03:45:00+00:00"
+        },
+        "inner_validation": {
+          "start": "2018-11-09T00:00:00+00:00",
+          "end": "2018-11-21T03:45:00+00:00"
+        },
+        "test": {
+          "start": "2018-11-21T04:00:00+00:00",
+          "end": "2019-02-10T07:45:00+00:00"
+        },
+        "rows": 7792,
+        "best_iteration": 164,
+        "model": {
+          "mae_kw": 15.81618840450869,
+          "rmse_kw": 27.572458812008268,
+          "r2": 0.7183211190007723
+        },
+        "baseline": {
+          "mae_kw": 18.29963855247933,
+          "rmse_kw": 29.64598626694476,
+          "r2": 0.674361984290766
+        }
+      },
+      {
+        "fold": 2,
+        "train": {
+          "start": "2018-09-01T00:00:00+00:00",
+          "end": "2019-02-10T07:45:00+00:00"
+        },
+        "inner_validation": {
+          "start": "2019-01-16T23:45:00+00:00",
+          "end": "2019-02-10T07:45:00+00:00"
+        },
+        "test": {
+          "start": "2019-02-10T08:00:00+00:00",
+          "end": "2019-05-02T11:45:00+00:00"
+        },
+        "rows": 7792,
+        "best_iteration": 78,
+        "model": {
+          "mae_kw": 12.245077213622942,
+          "rmse_kw": 18.427537687207725,
+          "r2": 0.8982994308321232
+        },
+        "baseline": {
+          "mae_kw": 12.661859358774185,
+          "rmse_kw": 19.681184467218724,
+          "r2": 0.8839911207533724
+        }
+      },
+      {
+        "fold": 3,
+        "train": {
+          "start": "2018-09-01T00:00:00+00:00",
+          "end": "2019-05-02T11:45:00+00:00"
+        },
+        "inner_validation": {
+          "start": "2019-03-26T23:30:00+00:00",
+          "end": "2019-05-02T11:45:00+00:00"
+        },
+        "test": {
+          "start": "2019-05-02T12:00:00+00:00",
+          "end": "2019-07-22T15:45:00+00:00"
+        },
+        "rows": 7792,
+        "best_iteration": 196,
+        "model": {
+          "mae_kw": 12.273033508087678,
+          "rmse_kw": 18.589760981410357,
+          "r2": 0.8834726531673565
+        },
+        "baseline": {
+          "mae_kw": 12.508266399682043,
+          "rmse_kw": 21.212495709261454,
+          "r2": 0.8482726818491102
+        }
+      },
+      {
+        "fold": 4,
+        "train": {
+          "start": "2018-09-01T00:00:00+00:00",
+          "end": "2019-07-22T15:45:00+00:00"
+        },
+        "inner_validation": {
+          "start": "2019-06-03T23:15:00+00:00",
+          "end": "2019-07-22T15:45:00+00:00"
+        },
+        "test": {
+          "start": "2019-07-22T16:00:00+00:00",
+          "end": "2019-10-11T19:45:00+00:00"
+        },
+        "rows": 7792,
+        "best_iteration": 186,
+        "model": {
+          "mae_kw": 13.851567597084625,
+          "rmse_kw": 20.280602069072952,
+          "r2": 0.8714812017014686
+        },
+        "baseline": {
+          "mae_kw": 11.353161416750869,
+          "rmse_kw": 18.105968760753864,
+          "r2": 0.8975649692695113
+        }
+      },
+      {
+        "fold": 5,
+        "train": {
+          "start": "2018-09-01T00:00:00+00:00",
+          "end": "2019-10-11T19:45:00+00:00"
+        },
+        "inner_validation": {
+          "start": "2019-08-11T23:00:00+00:00",
+          "end": "2019-10-11T19:45:00+00:00"
+        },
+        "test": {
+          "start": "2019-10-11T20:00:00+00:00",
+          "end": "2019-12-31T23:45:00+00:00"
+        },
+        "rows": 7792,
+        "best_iteration": 152,
+        "model": {
+          "mae_kw": 12.399093786219936,
+          "rmse_kw": 21.302582906236342,
+          "r2": 0.8591135273674453
+        },
+        "baseline": {
+          "mae_kw": 13.501905178027304,
+          "rmse_kw": 24.187999810277617,
+          "r2": 0.8183628493280011
+        }
+      }
+    ],
+    "model_summary": {
+      "mae_kw": {
+        "mean": 13.316992101904773,
+        "std": 1.5502533268999739
+      },
+      "rmse_kw": {
+        "mean": 21.234588491187132,
+        "std": 3.7402526756288457
+      },
+      "r2": {
+        "mean": 0.8461375864138331,
+        "std": 0.07290831304460635
+      }
+    },
+    "baseline_summary": {
+      "mae_kw": {
+        "mean": 13.664966181142745,
+        "std": 2.7016381988779634
+      },
+      "rmse_kw": {
+        "mean": 22.566727002891287,
+        "std": 4.549810420783381
+      },
+      "r2": {
+        "mean": 0.8245107210981522,
+        "std": 0.08947333595814072
+      }
+    }
+  },
+  "final_holdout": {
+    "selected_iteration": 116,
+    "inner_validation": {
+      "start": "2019-10-19T23:00:00+00:00",
+      "end": "2019-12-31T23:45:00+00:00"
+    },
+    "model": {
+      "mae_kw": 11.439358790514396,
+      "rmse_kw": 17.610464791053737,
+      "r2": 0.9072425297473151
+    },
+    "baseline": {
+      "mae_kw": 13.56697254860515,
+      "rmse_kw": 24.402417952134854,
+      "r2": 0.8218962837549053
+    },
+    "mae_improvement_vs_baseline_pct": 15.682303111238323,
+    "by_month": [
+      {
+        "period": "2020-01",
+        "rows": 2976,
+        "start": "2020-01-01T00:00:00+00:00",
+        "end": "2020-01-31T23:45:00+00:00",
+        "complete_month": true,
+        "model": {
+          "mae_kw": 11.743052680560409,
+          "rmse_kw": 18.44443909561896,
+          "r2": 0.9013255477264834
+        },
+        "baseline": {
+          "mae_kw": 14.81043299126579,
+          "rmse_kw": 26.742842276969647,
+          "r2": 0.7925616998282722
+        }
+      },
+      {
+        "period": "2020-02",
+        "rows": 2784,
+        "start": "2020-02-01T00:00:00+00:00",
+        "end": "2020-02-29T23:45:00+00:00",
+        "complete_month": true,
+        "model": {
+          "mae_kw": 11.114720494258309,
+          "rmse_kw": 16.67290892570907,
+          "r2": 0.9139852711765444
+        },
+        "baseline": {
+          "mae_kw": 12.237756213347224,
+          "rmse_kw": 21.62223640707781,
+          "r2": 0.855339057090392
+        }
+      }
+    ]
+  },
+  "feature_importance_gain": [
+    {
+      "feature": "is_business_time",
+      "importance": 1383761166
+    },
+    {
+      "feature": "hour_sin",
+      "importance": 372865620
+    },
+    {
+      "feature": "hour",
+      "importance": 235789937
+    },
+    {
+      "feature": "hour_cos",
+      "importance": 63577811
+    },
+    {
+      "feature": "day_sin",
+      "importance": 37632375
+    },
+    {
+      "feature": "temperature",
+      "importance": 23319161
+    },
+    {
+      "feature": "month",
+      "importance": 22769845
+    },
+    {
+      "feature": "year",
+      "importance": 21758288
+    },
+    {
+      "feature": "solar_radiation",
+      "importance": 12004247
+    },
+    {
+      "feature": "day_cos",
+      "importance": 11892454
+    },
+    {
+      "feature": "hour_x_month",
+      "importance": 9760247
+    },
+    {
+      "feature": "month_cos",
+      "importance": 4579655
+    },
+    {
+      "feature": "is_holiday",
+      "importance": 4012582
+    },
+    {
+      "feature": "day_of_week",
+      "importance": 3951470
+    },
+    {
+      "feature": "is_weekend",
+      "importance": 3230802
+    },
+    {
+      "feature": "month_sin",
+      "importance": 3220544
+    },
+    {
+      "feature": "minute",
+      "importance": 2003976
+    },
+    {
+      "feature": "precipitation",
+      "importance": 1003473
+    },
+    {
+      "feature": "is_active_hour",
+      "importance": 727916
+    },
+    {
+      "feature": "hour_x_weekend",
+      "importance": 234600
+    }
+  ],
+  "served_model": {
+    "path": "src/models/lgbm_context_model.pkl",
+    "trained_on_rows": 52605,
+    "n_estimators": 116,
+    "note": "Refit on all rows after the final holdout evaluation."
+  }
+}

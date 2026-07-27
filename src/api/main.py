@@ -53,16 +53,16 @@ CLIMATE_STATS = {
 async def lifespan(app: FastAPI):
     if MODEL_PATH.exists():
         ml_models["lgbm"] = joblib.load(MODEL_PATH)
-        print(f"✅ Model loaded from {MODEL_PATH}")
+        print(f"Model loaded from {MODEL_PATH}")
     else:
-        print("❌ ERROR: Model not found.")
+        print("ERROR: Model not found.")
     yield
     ml_models.clear()
 
 
 app = FastAPI(
     title="EV-Pulse API",
-    description="AI-Powered Smart Charging Simulator for EV Infrastructure",
+    description="Day-ahead EV charging load simulator",
     version=API_VERSION,
     lifespan=lifespan,
 )

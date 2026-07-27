@@ -94,7 +94,7 @@ def main():
     logger.info(f"Saving robust dataset to {OUTPUT_FILE}...")
     df.to_parquet(OUTPUT_FILE, index=False)
 
-    print("\n--- ✅ 'Day-Ahead' Features Ready ---")
+    print("\n--- Day-ahead features ready ---")
     print(df[["datetime", "is_holiday", "lag_24h", "avg_energy_yesterday"]].head())
 
 

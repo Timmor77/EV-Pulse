@@ -109,7 +109,7 @@ def main():
         logger.info(f"Saving weather data to {OUTPUT_FILE}...")
         df_15min.to_parquet(OUTPUT_FILE, index=False)
 
-        print("--- 🌦️ Weather Data Sample ---")
+        print("--- Weather data sample ---")
         print(df_15min.head())
         print(df_15min.describe())
 
