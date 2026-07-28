@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/Timmor77/EV-Pulse/actions/workflows/ci.yml/badge.svg) ![Python](https://img.shields.io/badge/Python-3.10-blue) ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-teal) ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red) ![Docker](https://img.shields.io/badge/Container-Docker-blue)
 
-**EV-Pulse** is a small end-to-end project for exploring day-ahead EV charging load. It predicts a daily profile from calendar and weather context, without using recent consumption as an input.
+**EV-Pulse** is a small end-to-end project for exploring day-ahead EV charging load. It keeps Caltech, JPL and Office 001 separate and predicts each daily profile from calendar, weather and a recent historical reference profile.
 
 ## 🎯 Business Value & Problem Solved
 Charging sites face two practical questions:
@@ -20,10 +20,11 @@ The demo lets a user:
 
 The project deliberately keeps a straightforward architecture:
 
-1.  **Data Pipeline:** Cleaning and processing of complex JSON time-series (ACN-Data Caltech/JPL).
-2.  **Core Model:** **LightGBM Regressor** (Context-Aware).
-    * *Strategy:* strictly **no lag features** (past consumption) are used.
-    * *Benefit:* The model is robust to sensor failure and can simulate any future date purely based on context (Time + Weather).
+1.  **Data Pipeline:** Cleaning and processing ACN-Data sessions into one 15-minute load curve per site.
+2.  **Core Model:** a simple recent profile plus a **LightGBM residual correction**.
+    * The reference is the mean of the last eight training weeks for the same weekday and time slot.
+    * LightGBM predicts the remaining difference from calendar and weather context.
+    * If cross-validation does not beat the calendar baseline for a site, the API keeps the baseline for that site.
 3.  **API (Backend):** **FastAPI** service serving predictions. Includes a **Climatology Fallback** system (uses seasonal averages if no weather data is provided).
 4.  **Dashboard (Frontend):** **Streamlit** interface for interactive simulation and visualization.
 5.  **Packaging:** **Docker Compose** starts the API and dashboard locally. Package management uses `uv`.
@@ -32,30 +33,28 @@ The project deliberately keeps a straightforward architecture:
 
 ## 📊 Model Performance
 
-The evaluation keeps the last 60 complete calendar days untouched (1 January to 29 February 2020). Model selection happens before this period: each `TimeSeriesSplit` fold uses the tail of its own training block for early stopping, then refits on the complete fold training block. The comparison baseline is simply the historical mean for the same weekday and 15-minute time slot. The 93 rows from the incomplete 1 March source day are not used for evaluation.
+The evaluation keeps the last 60 complete calendar days untouched (1 January to 29 February 2020). Each site is evaluated separately. Model selection uses three earlier `TimeSeriesSplit` folds; the final holdout is not used to choose between the residual model and the baseline.
 
-| Final holdout | LightGBM | Calendar baseline |
-|---|---:|---:|
-| MAE | **11.44 kW** | 13.57 kW |
-| RMSE | **17.61 kW** | 24.40 kW |
-| R² | **0.907** | 0.822 |
+| Final holdout | Selected method | MAE | Calendar baseline | Gain |
+|---|---|---:|---:|---:|
+| Caltech | Recent profile + residual model | **4.78 kW** | 6.81 kW | 29.8% |
+| JPL | Recent profile + residual model | **9.61 kW** | 10.35 kW | 7.2% |
+| Office 001 | Calendar baseline | **1.67 kW** | 1.67 kW | 0.0% |
+| All site rows | Development-selected method | **5.35 kW** | 6.28 kW | 14.7% |
 
-The model improves holdout MAE by **15.7%** over the baseline. Across the five development folds, its mean MAE is 13.32 kW versus 13.66 kW for the baseline; the baseline still wins on one fold, so the gain is modest and not uniform over time.
+The residual model is retained for Caltech and JPL because it wins on the development folds. Office 001 only contains 1,683 original sessions and its baseline remains slightly better, so the API deliberately keeps that simpler method.
 
-| Holdout period | Rows | Model MAE | Baseline MAE |
-|---|---:|---:|---:|
-| January 2020 | 2,976 | 11.74 kW | 14.81 kW |
-| February 2020 | 2,784 | 11.11 kW | 12.24 kW |
+The complete machine-readable result, including every fold, monthly metrics, selected method and source hashes, is stored in [`reports/site_model_evaluation.json`](reports/site_model_evaluation.json). The earlier aggregate context-only benchmark remains available in [`reports/model_evaluation.json`](reports/model_evaluation.json).
 
-The complete machine-readable result, including split dates, fold metrics, feature list, dataset SHA-256 and per-period metrics, is stored in [`reports/model_evaluation.json`](reports/model_evaluation.json).
-
-To reproduce it after rebuilding the processed dataset:
+To reproduce the site models from the cleaned sessions:
 
 ```bash
-uv run python -m src.models.train_model_v2
+uv run python -m src.features.make_time_series
+uv run python -m src.features.build_features_v3
+uv run python -m src.models.train_site_models
 ```
 
-This command writes the evaluation report and refits the served model on all available rows using the tree count selected before the holdout.
+The final command writes the evaluation report and refits the bundle served by the API.
 
 ---
 

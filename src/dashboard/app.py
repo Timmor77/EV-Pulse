@@ -32,6 +32,11 @@ st.sidebar.header("⚙️ Simulation Settings")
 
 # Date Selection
 today = datetime.now()
+selected_site = st.sidebar.selectbox(
+    "📍 Charging Site",
+    options=["caltech", "jpl", "office001"],
+    format_func=lambda site: {"caltech": "Caltech", "jpl": "JPL", "office001": "Office 001"}[site],
+)
 selected_date = st.sidebar.date_input(
     "📅 Target Date",
     value=today,
@@ -92,6 +97,7 @@ if st.sidebar.button("🚀 Run Simulation", type="primary", use_container_width=
             # API Request
             payload = {
                 "date": selected_date.strftime("%Y-%m-%d"),
+                "site": selected_site,
                 "override_temp": override_temp,
                 "override_sun": override_sun,
             }

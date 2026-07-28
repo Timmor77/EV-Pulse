@@ -25,7 +25,7 @@ from src.api.schemas import (
 from src.features.build_features_v3 import CAT_FEATURES, add_context_features
 
 # --- CONFIGURATION ---
-MODEL_PATH = Path("src/models/lgbm_context_model.pkl")
+MODEL_PATH = Path("src/models/site_models.pkl")
 GRID_CAPACITY_LIMIT = 150.0
 API_VERSION = "1.0.0"
 ml_models: dict[str, Any] = {}
@@ -52,7 +52,7 @@ CLIMATE_STATS = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if MODEL_PATH.exists():
-        ml_models["lgbm"] = joblib.load(MODEL_PATH)
+        ml_models["bundle"] = joblib.load(MODEL_PATH)
         print(f"Model loaded from {MODEL_PATH}")
     else:
         print("ERROR: Model not found.")
@@ -91,7 +91,7 @@ async def root() -> dict[str, str]:
 @app.get("/health", response_model=HealthResponse)
 async def health_check() -> dict[str, Any]:
     """Health check endpoint for monitoring and container orchestration."""
-    model_loaded = "lgbm" in ml_models
+    model_loaded = "bundle" in ml_models
     return {
         "status": "healthy" if model_loaded else "degraded",
         "model_loaded": model_loaded,
@@ -176,7 +176,7 @@ async def simulate(request: SimulationRequest) -> dict[str, Any]:
     Raises:
         HTTPException: If model is not loaded or simulation fails.
     """
-    if "lgbm" not in ml_models:
+    if "bundle" not in ml_models:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Model not loaded. Please check server logs.",
@@ -190,10 +190,23 @@ async def simulate(request: SimulationRequest) -> dict[str, Any]:
             request.override_sun,
         )
 
-        # Get model features and make predictions
-        model_features = ml_models["lgbm"].feature_name_
-        X = df_features[model_features]
-        predictions = np.maximum(ml_models["lgbm"].predict(X), 0)
+        bundle = ml_models["bundle"]
+        method = bundle["methods"][request.site]
+        profile_index = pd.MultiIndex.from_frame(df_features[bundle["profile_keys"]])
+
+        if method == "residual_recent":
+            profile = bundle["profiles"][request.site]
+            fallback = bundle["fallbacks"][request.site]
+            recent_level = profile.reindex(profile_index).to_numpy(dtype=float)
+            recent_level = np.nan_to_num(recent_level, nan=fallback)
+            model = bundle["models"][request.site]
+            residual = model.predict(df_features[bundle["features"]])
+            predictions = np.maximum(recent_level + residual, 0)
+        else:
+            profile = bundle["calendar_profiles"][request.site]
+            fallback = bundle["calendar_fallbacks"][request.site]
+            predictions = profile.reindex(profile_index).to_numpy(dtype=float)
+            predictions = np.maximum(np.nan_to_num(predictions, nan=fallback), 0)
 
         # Build response with predictions and statistics
         points = []
@@ -228,6 +241,8 @@ async def simulate(request: SimulationRequest) -> dict[str, Any]:
 
         return {
             "date": request.date,
+            "site": request.site,
+            "method": method,
             "summary": {
                 "total_energy_kwh": total_energy,
                 "peak_power_kw": round(float(peak_val), 2),

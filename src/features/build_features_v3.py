@@ -16,9 +16,9 @@ import pandas as pd
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-LOAD_FILE = Path("data/processed/acn_timeseries_15min.parquet")
+LOAD_FILE = Path("data/processed/acn_site_timeseries_15min.parquet")
 WEATHER_FILE = Path("data/processed/weather_data.parquet")
-OUTPUT_FILE = Path("data/processed/model_context.parquet")
+OUTPUT_FILE = Path("data/processed/model_site_context.parquet")
 SITE_TIMEZONE = "America/Los_Angeles"
 
 # --- EXPORTED CONSTANTS (To be imported by API and Training) ---
@@ -121,7 +121,7 @@ def main():
     df_load = pd.read_parquet(LOAD_FILE)
     df_weather = pd.read_parquet(WEATHER_FILE)
 
-    # Inner Merge
+    # Each site keeps its own target rows while sharing the Pasadena weather.
     df = pd.merge(df_load, df_weather, on="datetime", how="inner")
 
     # Apply features (Call shared function)

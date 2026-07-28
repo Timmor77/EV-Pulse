@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 INPUT_FILE = Path("data/processed/acn_data_cleaned.parquet")
-OUTPUT_FILE = Path("data/processed/acn_timeseries_15min.parquet")
+OUTPUT_FILE = Path("data/processed/acn_site_timeseries_15min.parquet")
 
 
 def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) -> pd.DataFrame:
@@ -112,6 +112,21 @@ def create_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) ->
     return ts_df
 
 
+def create_site_timeseries_from_sessions(df: pd.DataFrame, interval_min: int = 15) -> pd.DataFrame:
+    """Build one independent load curve per source site."""
+    if "source_site" not in df.columns:
+        raise ValueError("The session data must contain a source_site column")
+
+    site_frames = []
+    for site, site_sessions in df.groupby("source_site", sort=True):
+        logger.info("Building time series for %s (%d sessions)", site, len(site_sessions))
+        site_timeseries = create_timeseries_from_sessions(site_sessions, interval_min=interval_min)
+        site_timeseries["source_site"] = site
+        site_frames.append(site_timeseries)
+
+    return pd.concat(site_frames, ignore_index=True)
+
+
 def main():
     if not INPUT_FILE.exists():
         logger.error("Input file not found. Run process_data.py first.")
@@ -122,8 +137,8 @@ def main():
     # Optional filtering: Can focus on Caltech to start if needed
     # df = df[df['source_site'] == 'caltech']
 
-    logger.info("Generating Time Series (15 min intervals)...")
-    ts_df = create_timeseries_from_sessions(df)
+    logger.info("Generating one 15-minute time series per site...")
+    ts_df = create_site_timeseries_from_sessions(df)
 
     logger.info(f"Saving Time Series to {OUTPUT_FILE}...")
     ts_df.to_parquet(OUTPUT_FILE, index=False)

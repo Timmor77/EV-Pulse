@@ -64,6 +64,8 @@ class TestAPIEndpoints:
         # Check response structure
         assert "date" in data
         assert data["date"] == "2025-07-14"
+        assert data["site"] == "caltech"
+        assert data["method"] == "residual_recent"
         assert "summary" in data
         assert "weather" in data
         assert "points" in data
@@ -110,6 +112,25 @@ class TestAPIEndpoints:
         data = response.json()
         assert data["weather"]["source"] == "user-defined"
         assert data["weather"]["temperature_c"] == 35.0
+
+    def test_simulate_jpl_site(self, client):
+        response = client.post("/simulate", json={"date": "2025-07-14", "site": "jpl"})
+
+        assert response.status_code == 200
+        assert response.json()["site"] == "jpl"
+        assert response.json()["method"] == "residual_recent"
+        assert len(response.json()["points"]) == 96
+
+    def test_office_site_uses_selected_calendar_baseline(self, client):
+        response = client.post("/simulate", json={"date": "2025-07-14", "site": "office001"})
+
+        assert response.status_code == 200
+        assert response.json()["method"] == "calendar_baseline"
+
+    def test_unknown_site_is_rejected(self, client):
+        response = client.post("/simulate", json={"date": "2025-07-14", "site": "unknown"})
+
+        assert response.status_code == 422
 
     def test_simulate_with_zero_temperature(self, client):
         """Test that a 0°C override is still treated as user-defined."""

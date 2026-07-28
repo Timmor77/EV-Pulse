@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-07-27T21:35:10.428606+00:00",
+  "generated_at_utc": "2026-07-28T20:56:57.789353+00:00",
   "reproduce": "uv run python -m src.models.train_model_v2",
   "source": {
     "training_script": "src/models/train_model_v2.py",
     "training_script_sha256": "7bbe14ab737448b32621ae5d3ae6534901a5968d6d4894f66083eb51b9c43408",
     "feature_script": "src/features/build_features_v3.py",
-    "feature_script_sha256": "334a61b0bfd9f98d34ff4b364c9b5a0c1d9a6573f138fd0db20eac44d659096e",
+    "feature_script_sha256": "d474951f7da162916d7cb8c1fa598838bdb5f99874daf0e8ed5262621ff430d3",
     "uv_lock_sha256": "f93b1d0bf7f3233360c4884e30b2ed690d8aa8e7facc692e3ef551f2ae444d38",
     "versions": {
       "lightgbm": "4.6.0",

@@ -19,6 +19,7 @@ class TestSimulationRequest:
         """Test valid request with only date."""
         request = SimulationRequest(date="2025-07-14")
         assert request.date == "2025-07-14"
+        assert request.site == "caltech"
         assert request.override_temp is None
         assert request.override_sun is None
 
@@ -32,6 +33,14 @@ class TestSimulationRequest:
         assert request.date == "2025-07-14"
         assert request.override_temp == 30.5
         assert request.override_sun == 800.0
+
+    def test_valid_site(self):
+        request = SimulationRequest(date="2025-07-14", site="jpl")
+        assert request.site == "jpl"
+
+    def test_unknown_site_fails(self):
+        with pytest.raises(ValidationError):
+            SimulationRequest(date="2025-07-14", site="unknown")
 
     def test_missing_date_fails(self):
         """Test that missing date raises validation error."""

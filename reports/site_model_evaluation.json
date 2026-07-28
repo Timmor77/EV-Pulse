@@ -1,0 +1,528 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-28T20:57:31.683858+00:00",
+  "reproduce": [
+    "uv run python -m src.features.make_time_series",
+    "uv run python -m src.features.build_features_v3",
+    "uv run python -m src.models.train_site_models"
+  ],
+  "source": {
+    "training_script": "src/models/train_site_models.py",
+    "training_script_sha256": "abab4efde403f164ed8a3c6a6023dccba271930e6a4bbc1720488376ea199662",
+    "feature_script_sha256": "d474951f7da162916d7cb8c1fa598838bdb5f99874daf0e8ed5262621ff430d3",
+    "timeseries_script_sha256": "f6aa3231e1f63964d7e41b1f2c1e3d5e78ffd750c112dfb293af65553b9b8694",
+    "uv_lock_sha256": "f93b1d0bf7f3233360c4884e30b2ed690d8aa8e7facc692e3ef551f2ae444d38",
+    "versions": {
+      "lightgbm": "4.6.0",
+      "numpy": "2.2.6",
+      "pandas": "2.3.3"
+    }
+  },
+  "dataset": {
+    "path": "data/processed/model_site_context.parquet",
+    "sha256": "f5e505a85d10be98ec0408c4215c57cdd1a89061363ce858266e83ac66527518",
+    "rows": 137643,
+    "sites": [
+      "caltech",
+      "jpl",
+      "office001"
+    ]
+  },
+  "method": {
+    "final_holdout_days": 60,
+    "cv_splits_per_site": 3,
+    "recent_profile": "Mean of the last eight training observations for the same weekday, hour and minute; fixed at each evaluation cutoff.",
+    "lightgbm_parameters": {
+      "n_estimators": 1000,
+      "learning_rate": 0.03,
+      "num_leaves": 20,
+      "random_state": 42,
+      "n_jobs": 1,
+      "verbosity": -1,
+      "min_child_samples": 50,
+      "reg_lambda": 1.0,
+      "force_col_wise": true
+    }
+  },
+  "aggregate_holdout": {
+    "rows": 17280,
+    "residual_model": {
+      "mae_kw": 5.358685770458101,
+      "rmse_kw": 11.310899714941682,
+      "r2": 0.8530608034828245
+    },
+    "selected_method": {
+      "mae_kw": 5.352819310653372,
+      "rmse_kw": 11.311913077416314,
+      "r2": 0.8530344732453057
+    },
+    "baseline": {
+      "mae_kw": 6.278747001152671,
+      "rmse_kw": 12.782496327539123,
+      "r2": 0.8123387044215483
+    },
+    "selected_mae_improvement_vs_baseline_pct": 14.747013860079324
+  },
+  "sites": {
+    "caltech": {
+      "rows": 52605,
+      "development": {
+        "rows": 46752,
+        "start": "2018-09-01T00:00:00+00:00",
+        "end": "2019-12-31T23:45:00+00:00"
+      },
+      "final_holdout": {
+        "rows": 5760,
+        "start": "2020-01-01T00:00:00+00:00",
+        "end": "2020-02-29T23:45:00+00:00",
+        "residual_iteration": 1,
+        "residual_inner_validation": {
+          "start": "2019-10-19T23:00:00+00:00",
+          "end": "2019-12-31T23:45:00+00:00"
+        },
+        "residual_model": {
+          "mae_kw": 4.780066669979347,
+          "rmse_kw": 8.184152558628554,
+          "r2": 0.6809746214077735
+        },
+        "baseline": {
+          "mae_kw": 6.812504369989297,
+          "rmse_kw": 9.463689330477017,
+          "r2": 0.573421708885006
+        },
+        "selection": {
+          "method": "residual_recent",
+          "development_mean_mae_kw": {
+            "residual_model": 6.321583938223607,
+            "baseline": 8.730888995079537
+          }
+        },
+        "selected_method_metrics": {
+          "mae_kw": 4.780066669979347,
+          "rmse_kw": 8.184152558628554,
+          "r2": 0.6809746214077735
+        },
+        "selected_mae_improvement_vs_baseline_pct": 29.833928752593852,
+        "by_month": [
+          {
+            "period": "2020-01",
+            "rows": 2976,
+            "residual_model": {
+              "mae_kw": 4.955055701969542,
+              "rmse_kw": 8.727321031630053,
+              "r2": 0.6698264542149182
+            },
+            "selected_method": {
+              "mae_kw": 4.955055701969542,
+              "rmse_kw": 8.727321031630053,
+              "r2": 0.6698264542149182
+            },
+            "baseline": {
+              "mae_kw": 7.17514504910627,
+              "rmse_kw": 10.049604577558702,
+              "r2": 0.5621974183613956
+            }
+          },
+          {
+            "period": "2020-02",
+            "rows": 2784,
+            "residual_model": {
+              "mae_kw": 4.593009428886382,
+              "rmse_kw": 7.560494150314558,
+              "r2": 0.6956120507449894
+            },
+            "selected_method": {
+              "mae_kw": 4.593009428886382,
+              "rmse_kw": 7.560494150314558,
+              "r2": 0.6956120507449894
+            },
+            "baseline": {
+              "mae_kw": 6.424853988864256,
+              "rmse_kw": 8.79430424509409,
+              "r2": 0.5881585409797261
+            }
+          }
+        ]
+      },
+      "cross_validation": [
+        {
+          "fold": 1,
+          "train": {
+            "start": "2018-09-01T00:00:00+00:00",
+            "end": "2018-12-31T17:45:00+00:00"
+          },
+          "test": {
+            "start": "2018-12-31T18:00:00+00:00",
+            "end": "2019-05-02T11:45:00+00:00"
+          },
+          "rows": 11688,
+          "residual_iteration": 122,
+          "residual_model": {
+            "mae_kw": 7.243867314104118,
+            "rmse_kw": 11.08582698881962,
+            "r2": 0.5082696148958218
+          },
+          "baseline": {
+            "mae_kw": 10.360910565170832,
+            "rmse_kw": 13.59223035825643,
+            "r2": 0.26078238937790454
+          }
+        },
+        {
+          "fold": 2,
+          "train": {
+            "start": "2018-09-01T00:00:00+00:00",
+            "end": "2019-05-02T11:45:00+00:00"
+          },
+          "test": {
+            "start": "2019-05-02T12:00:00+00:00",
+            "end": "2019-09-01T05:45:00+00:00"
+          },
+          "rows": 11688,
+          "residual_iteration": 179,
+          "residual_model": {
+            "mae_kw": 6.695070361934472,
+            "rmse_kw": 10.489902342002942,
+            "r2": 0.4050860139663255
+          },
+          "baseline": {
+            "mae_kw": 8.55738910410074,
+            "rmse_kw": 11.730548894242558,
+            "r2": 0.25604279011690523
+          }
+        },
+        {
+          "fold": 3,
+          "train": {
+            "start": "2018-09-01T00:00:00+00:00",
+            "end": "2019-09-01T05:45:00+00:00"
+          },
+          "test": {
+            "start": "2019-09-01T06:00:00+00:00",
+            "end": "2019-12-31T23:45:00+00:00"
+          },
+          "rows": 11688,
+          "residual_iteration": 2,
+          "residual_model": {
+            "mae_kw": 5.0258141386322315,
+            "rmse_kw": 8.369548713359295,
+            "r2": 0.6625114329441393
+          },
+          "baseline": {
+            "mae_kw": 7.274367315967043,
+            "rmse_kw": 10.368899260630968,
+            "r2": 0.48201129201803494
+          }
+        }
+      ]
+    },
+    "jpl": {
+      "rows": 52177,
+      "development": {
+        "rows": 46324,
+        "start": "2018-09-05T11:00:00+00:00",
+        "end": "2019-12-31T23:45:00+00:00"
+      },
+      "final_holdout": {
+        "rows": 5760,
+        "start": "2020-01-01T00:00:00+00:00",
+        "end": "2020-02-29T23:45:00+00:00",
+        "residual_iteration": 82,
+        "residual_inner_validation": {
+          "start": "2019-10-20T15:00:00+00:00",
+          "end": "2019-12-31T23:45:00+00:00"
+        },
+        "residual_model": {
+          "mae_kw": 9.609480454972779,
+          "rmse_kw": 17.458178786609363,
+          "r2": 0.8448275350577907
+        },
+        "baseline": {
+          "mae_kw": 10.35482582646073,
+          "rmse_kw": 19.710541559833555,
+          "r2": 0.802205641936923
+        },
+        "selection": {
+          "method": "residual_recent",
+          "development_mean_mae_kw": {
+            "residual_model": 9.459507330948426,
+            "baseline": 10.233220844019442
+          }
+        },
+        "selected_method_metrics": {
+          "mae_kw": 9.609480454972779,
+          "rmse_kw": 17.458178786609363,
+          "r2": 0.8448275350577907
+        },
+        "selected_mae_improvement_vs_baseline_pct": 7.198048368745074,
+        "by_month": [
+          {
+            "period": "2020-01",
+            "rows": 2976,
+            "residual_model": {
+              "mae_kw": 9.982510913698388,
+              "rmse_kw": 17.39546485597151,
+              "r2": 0.8447205467188074
+            },
+            "selected_method": {
+              "mae_kw": 9.982510913698388,
+              "rmse_kw": 17.39546485597151,
+              "r2": 0.8447205467188074
+            },
+            "baseline": {
+              "mae_kw": 11.290786129187465,
+              "rmse_kw": 21.42946010192883,
+              "r2": 0.7643516655063824
+            }
+          },
+          {
+            "period": "2020-02",
+            "rows": 2784,
+            "residual_model": {
+              "mae_kw": 9.210723757714371,
+              "rmse_kw": 17.52496964284595,
+              "r2": 0.8449195100824949
+            },
+            "selected_method": {
+              "mae_kw": 9.210723757714371,
+              "rmse_kw": 17.52496964284595,
+              "r2": 0.8449195100824949
+            },
+            "baseline": {
+              "mae_kw": 9.354316537339045,
+              "rmse_kw": 17.689323047855734,
+              "r2": 0.8419971058288758
+            }
+          }
+        ]
+      },
+      "cross_validation": [
+        {
+          "fold": 1,
+          "train": {
+            "start": "2018-09-05T11:00:00+00:00",
+            "end": "2019-01-04T02:00:00+00:00"
+          },
+          "test": {
+            "start": "2019-01-04T02:15:00+00:00",
+            "end": "2019-05-04T17:15:00+00:00"
+          },
+          "rows": 11581,
+          "residual_iteration": 44,
+          "residual_model": {
+            "mae_kw": 10.771207568919282,
+            "rmse_kw": 20.77935243053805,
+            "r2": 0.7867104315770043
+          },
+          "baseline": {
+            "mae_kw": 11.643155196732604,
+            "rmse_kw": 22.239490846479683,
+            "r2": 0.755682105037788
+          }
+        },
+        {
+          "fold": 2,
+          "train": {
+            "start": "2018-09-05T11:00:00+00:00",
+            "end": "2019-05-04T17:15:00+00:00"
+          },
+          "test": {
+            "start": "2019-05-04T17:30:00+00:00",
+            "end": "2019-09-02T08:30:00+00:00"
+          },
+          "rows": 11581,
+          "residual_iteration": 1,
+          "residual_model": {
+            "mae_kw": 8.467597042716092,
+            "rmse_kw": 16.12017451179176,
+            "r2": 0.8607590373982836
+          },
+          "baseline": {
+            "mae_kw": 9.096079561952171,
+            "rmse_kw": 16.754459935593285,
+            "r2": 0.8495859498310498
+          }
+        },
+        {
+          "fold": 3,
+          "train": {
+            "start": "2018-09-05T11:00:00+00:00",
+            "end": "2019-09-02T08:30:00+00:00"
+          },
+          "test": {
+            "start": "2019-09-02T08:45:00+00:00",
+            "end": "2019-12-31T23:45:00+00:00"
+          },
+          "rows": 11581,
+          "residual_iteration": 1,
+          "residual_model": {
+            "mae_kw": 9.139717381209906,
+            "rmse_kw": 17.94527908752641,
+            "r2": 0.8307106574554871
+          },
+          "baseline": {
+            "mae_kw": 9.960427773373555,
+            "rmse_kw": 18.387802745355106,
+            "r2": 0.8222584934587198
+          }
+        }
+      ]
+    },
+    "office001": {
+      "rows": 32861,
+      "development": {
+        "rows": 27008,
+        "start": "2019-03-25T16:00:00+00:00",
+        "end": "2019-12-31T23:45:00+00:00"
+      },
+      "final_holdout": {
+        "rows": 5760,
+        "start": "2020-01-01T00:00:00+00:00",
+        "end": "2020-02-29T23:45:00+00:00",
+        "residual_iteration": 175,
+        "residual_inner_validation": {
+          "start": "2019-11-19T19:15:00+00:00",
+          "end": "2019-12-31T23:45:00+00:00"
+        },
+        "residual_model": {
+          "mae_kw": 1.6865101864221754,
+          "rmse_kw": 3.4700140397813897,
+          "r2": 0.5019159727578311
+        },
+        "baseline": {
+          "mae_kw": 1.6689108070079883,
+          "rmse_kw": 3.479909878853638,
+          "r2": 0.49907103463233604
+        },
+        "selection": {
+          "method": "calendar_baseline",
+          "development_mean_mae_kw": {
+            "residual_model": 1.6550588685601166,
+            "baseline": 1.6038250281871995
+          }
+        },
+        "selected_method_metrics": {
+          "mae_kw": 1.6689108070079883,
+          "rmse_kw": 3.479909878853638,
+          "r2": 0.49907103463233604
+        },
+        "selected_mae_improvement_vs_baseline_pct": 0.0,
+        "by_month": [
+          {
+            "period": "2020-01",
+            "rows": 2976,
+            "residual_model": {
+              "mae_kw": 1.7745472886662528,
+              "rmse_kw": 3.687459511990255,
+              "r2": 0.5676060870399826
+            },
+            "selected_method": {
+              "mae_kw": 1.847789512377017,
+              "rmse_kw": 3.908788524006254,
+              "r2": 0.5141419534846896
+            },
+            "baseline": {
+              "mae_kw": 1.847789512377017,
+              "rmse_kw": 3.908788524006254,
+              "r2": 0.5141419534846896
+            }
+          },
+          {
+            "period": "2020-02",
+            "rows": 2784,
+            "residual_model": {
+              "mae_kw": 1.5924015598854029,
+              "rmse_kw": 3.221382006633542,
+              "r2": 0.3354364620306901
+            },
+            "selected_method": {
+              "mae_kw": 1.4776956391997165,
+              "rmse_kw": 2.95336690627363,
+              "r2": 0.4414180977848765
+            },
+            "baseline": {
+              "mae_kw": 1.4776956391997165,
+              "rmse_kw": 2.95336690627363,
+              "r2": 0.4414180977848765
+            }
+          }
+        ]
+      },
+      "cross_validation": [
+        {
+          "fold": 1,
+          "train": {
+            "start": "2019-03-25T16:00:00+00:00",
+            "end": "2019-06-03T23:45:00+00:00"
+          },
+          "test": {
+            "start": "2019-06-04T00:00:00+00:00",
+            "end": "2019-08-13T07:45:00+00:00"
+          },
+          "rows": 6752,
+          "residual_iteration": 2,
+          "residual_model": {
+            "mae_kw": 1.29656170801706,
+            "rmse_kw": 2.481540686691559,
+            "r2": 0.39767569970078465
+          },
+          "baseline": {
+            "mae_kw": 1.2337999581337258,
+            "rmse_kw": 2.4388995215617504,
+            "r2": 0.41819774330666104
+          }
+        },
+        {
+          "fold": 2,
+          "train": {
+            "start": "2019-03-25T16:00:00+00:00",
+            "end": "2019-08-13T07:45:00+00:00"
+          },
+          "test": {
+            "start": "2019-08-13T08:00:00+00:00",
+            "end": "2019-10-22T15:45:00+00:00"
+          },
+          "rows": 6752,
+          "residual_iteration": 4,
+          "residual_model": {
+            "mae_kw": 1.9510845830909758,
+            "rmse_kw": 4.082689771603727,
+            "r2": 0.4023351996175524
+          },
+          "baseline": {
+            "mae_kw": 2.025927004088776,
+            "rmse_kw": 4.3873022866328295,
+            "r2": 0.30982371240854845
+          }
+        },
+        {
+          "fold": 3,
+          "train": {
+            "start": "2019-03-25T16:00:00+00:00",
+            "end": "2019-10-22T15:45:00+00:00"
+          },
+          "test": {
+            "start": "2019-10-22T16:00:00+00:00",
+            "end": "2019-12-31T23:45:00+00:00"
+          },
+          "rows": 6752,
+          "residual_iteration": 53,
+          "residual_model": {
+            "mae_kw": 1.717530314572314,
+            "rmse_kw": 3.477313075005762,
+            "r2": 0.4371913641933083
+          },
+          "baseline": {
+            "mae_kw": 1.5517481223390972,
+            "rmse_kw": 3.1801177605250035,
+            "r2": 0.5292833392032653
+          }
+        }
+      ]
+    }
+  },
+  "served_bundle": {
+    "path": "src/models/site_models.pkl",
+    "model_type": "development-selected residual model or calendar baseline per site"
+  }
+}

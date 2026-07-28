@@ -5,6 +5,7 @@ and response serialization.
 """
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -17,6 +18,10 @@ class SimulationRequest(BaseModel):
         description="Target date in YYYY-MM-DD format",
         json_schema_extra={"example": "2025-07-14"},
         pattern=r"^\d{4}-\d{2}-\d{2}$",
+    )
+    site: Literal["caltech", "jpl", "office001"] = Field(
+        "caltech",
+        description="Charging site to simulate",
     )
     override_temp: float | None = Field(
         None,
@@ -64,6 +69,8 @@ class SimulationResponse(BaseModel):
     """Response model for power simulation endpoint."""
 
     date: str = Field(..., description="Simulation target date")
+    site: str = Field(..., description="Charging site used for the prediction")
+    method: str = Field(..., description="Prediction method selected during temporal validation")
     summary: SimulationSummary = Field(..., description="Aggregated statistics")
     weather: WeatherInfo = Field(..., description="Weather conditions used")
     points: list[PredictionPoint] = Field(..., description="Time series predictions (96 points)")
@@ -73,6 +80,8 @@ class SimulationResponse(BaseModel):
         "json_schema_extra": {
             "example": {
                 "date": "2025-07-14",
+                "site": "caltech",
+                "method": "residual_recent",
                 "summary": {
                     "total_energy_kwh": 1250.5,
                     "peak_power_kw": 145.2,
